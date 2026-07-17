@@ -1254,13 +1254,20 @@
         "",
         "## Interop (blocos estrangeiros)",
         "",
+        "Blocos `>Go( ... )` (alvo go) e `>C( ... )` (alvo c) embutem código nativo. Um bloco só é aceito se a sua linguagem tiver sido **importada** com `import >Lang<` — caso contrário o compilador rejeita com `[Erro Estrangeiro]`. Cada backend emite apenas os blocos da sua linguagem (os demais são omitidos com um comentário).",
+        "",
         "```cryo",
+        "import >C<               // habilita blocos C",
+        "library >c math<         // -> #include <math.h> no backend C",
+        "",
         ">C(",
-        "    printf(\"valor = 0x%llX\\n\", (long long)valor);",
+        "    printf(\"raiz = %.4f\\n\", sqrt(2.0));",
         ")",
         "```",
         "",
-        "Blocos `>Go( ... )` (alvo go) e `>C( ... )` (alvo c) embutem código nativo. Também há `library >nome<` para importar bibliotecas. **Blocos estrangeiros são código não verificado** — a auditoria os classifica como ALTO."
+        "**Libraries** pertencem a uma linguagem importada: `library >go fmt<` vira `import \"fmt\"` no backend Go; `library >c math<` vira `#include <math.h>` no backend C. Uma library não qualificada (`library >nome<`) infere a linguagem quando há exatamente uma importada.",
+        "",
+        "> Blocos estrangeiros continuam sendo **código não verificado pelo compilador** — a auditoria os classifica como ALTO. A verificação de `import` garante apenas que a linguagem foi declarada, não que o código embutido é seguro."
       )
     },
     {
@@ -1652,8 +1659,9 @@
         "| `??` | null-coalescing |",
         "| `?` | sufixo de tipo opcional (`T?`) e ternário |",
         "| `!` | unwrap de opcional (`x!`) e negação lógica |",
-        "| `>Lang( ... )` | bloco de código estrangeiro |",
-        "| `library >nome<` | importação de biblioteca |"
+        "| `import >Lang<` | habilita a linguagem estrangeira `Lang` (exigido p/ blocos) |",
+        "| `>Lang( ... )` | bloco de código estrangeiro (requer `import >Lang<`) |",
+        "| `library >lang nome<` | importa uma biblioteca da linguagem `lang` |"
       )
     },
     {
@@ -1672,6 +1680,7 @@
         "| `example_agent_pedido.cryo` | agente de e-commerce com 6 tools | go |",
         "| `example_agent_landpage.cryo` | agente que cria e abre uma landing page | go |",
         "| `example_pyro.cryo` | skills nativas + acesso à máquina | go |",
+        "| `example_foreign.cryo` | blocos estrangeiros verificados + libraries | go/c |",
         "| `example_v4.cryo` | switch, bitwise, literais, assert, `>C(...)` | c |",
         "| `example_asm.cryo` | subconjunto inteiro | asm |",
         "| `example_struct.cryo` | retorno de struct em registrador | asm |",
