@@ -1258,7 +1258,7 @@
         "python burnout/cryoc.py app.cryo --backend node --run",
         "```",
         "",
-        "O backend faz **inferência de tipos** para respeitar a semântica do Cryo: `int / int` gera divisão inteira (trunca para zero), enquanto envolver `number` gera divisão de ponto flutuante; e o acesso indexado a **arrays** (não a maps) recebe **bounds-check** em modo seguro. A divisão por zero também aborta.",
+        "O backend faz **inferência de tipos** para respeitar a semântica do Cryo: `int / int` gera divisão inteira (trunca para zero), enquanto envolver `number` gera divisão de ponto flutuante; e o acesso indexado a **arrays e strings** (não a maps) recebe **bounds-check** em modo seguro — inclusive em leitura/escrita **aninhada** (`m[i][j]` vira `cryoSetIndex(cryoIndex(m, i), j, v)`, checando os dois índices). A divisão por zero também aborta.",
         "",
         "> Recursos de LLM/agente, concorrência (`spawn`/`await`) e acesso à máquina (`pyro_*`) **não** são cobertos no backend node — use `--backend go`. O gerador emite um erro claro nesses casos. Não há inteiro de 64 bits (números são `double` do JavaScript).",
         "",
