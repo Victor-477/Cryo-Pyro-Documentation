@@ -1866,6 +1866,38 @@
     },
 
     {
+      slug: "lsp", group: "Ecossistema", title: "Language Server (LSP)",
+      lead: "Um servidor LSP nativo dá **diagnósticos ao digitar**, hover, ir-para-definição e outline — reaproveitando o front-end do compilador.",
+      body: md(
+        "O servidor ([`burnout/lsp.py`](https://github.com/Victor-477/Burnout)) fala JSON-RPC sobre stdio, **sem dependências** (só a stdlib do Python), e reusa o mesmo lexer/parser/análise-semântica do compilador — então os diagnósticos são idênticos aos da compilação.",
+        "",
+        "## Recursos",
+        "",
+        "| Capacidade | O que faz |",
+        "|---|---|",
+        "| **Diagnósticos** | erros léxicos, sintáticos, **semânticos** (variável/função/aridade), de módulo e de blocos estrangeiros — publicados ao abrir/editar |",
+        "| **Hover** | documentação de builtins e palavras-chave; assinatura de funções/structs/enums do usuário |",
+        "| **Ir para definição** | salta para a declaração de uma função/struct/enum |",
+        "| **Outline (documentSymbol)** | lista funções, structs, enums e consts do arquivo |",
+        "",
+        "## No VS Code",
+        "",
+        "A extensão **Burnout Compiler** já inclui um cliente LSP embutido (sem `npm`): quando um arquivo `.cryo` é aberto, ela procura `burnout/lsp.py` no workspace e liga tudo automaticamente. Configurações: `burnout.lsp.enabled` e `burnout.lspPath`.",
+        "",
+        "## Em outros editores",
+        "",
+        "Qualquer editor com cliente LSP pode usá-lo — o comando do servidor é:",
+        "",
+        "```bash",
+        "python burnout/cryoc.py --lsp        # ou: python burnout/lsp.py",
+        "```",
+        "",
+        "Exemplo (Neovim, `nvim-lspconfig` com um servidor customizado): aponte `cmd = {\"python\", \"caminho/burnout/lsp.py\"}` e `filetypes = {\"cryo\"}`.",
+        "",
+        "> O servidor é conservador: só reporta o que é inequívoco (nunca rejeita um programa válido). É a mesma análise da [checagem semântica](#/semantica)."
+      )
+    },
+    {
       slug: "roadmap", group: "Ecossistema", title: "Roadmap",
       lead: "O plano de implementações para o Cryo e o Pyro evoluírem até suportar **grandes projetos** — em fases, com objetivo claro por fase.",
       body: md(
@@ -1891,11 +1923,11 @@
         "",
         "- ⬜ Dispatch mais rápido (meta: benchmark contra Python/Lua)",
         "",
-        "## Fase 6 — Ferramentas para projetos grandes",
+        "## Fase 6 — Ferramentas para projetos grandes — em andamento",
         "",
-        "- **LSP** (diagnósticos ao digitar, go-to-definition) — transforma o VS Code",
-        "- `cryoc fmt` (formatador), framework de testes (`test fn` + `cryoc test`), REPL",
-        "- Gerenciador de pacotes (`cryo.toml`), debugger da VM, CI dos exemplos",
+        "- ✅ **[LSP](#/lsp)** (diagnósticos ao digitar, hover, ir-para-definição, outline) — servidor nativo + cliente embutido no VS Code",
+        "- ⬜ `cryoc fmt` (formatador), framework de testes (`test fn` + `cryoc test`), REPL",
+        "- ⬜ Gerenciador de pacotes (`cryo.toml`), debugger da VM, CI dos exemplos",
         "",
         "## Fase 7 — Escala e novos alvos",
         "",
@@ -2095,7 +2127,7 @@
     { title: "LLM & Agentes", pages: ["schema", "tools", "agent", "llm-real", "skills", "maquina"] },
     { title: "Compilador Burnout", pages: ["cli", "backends", "estrangeiros", "semantica", "seguranca", "biblioteca"] },
     { title: "Pyro — bytecode & VM", pages: ["pyro-formato", "pyro-isa", "pyro-vm"] },
-    { title: "Ecossistema", pages: ["editor", "roadmap"] },
+    { title: "Ecossistema", pages: ["editor", "lsp", "roadmap"] },
     { title: "Referência", pages: ["builtins", "palavras-chave", "exemplos"] }
   ];
 
