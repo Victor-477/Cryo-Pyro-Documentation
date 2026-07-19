@@ -1186,7 +1186,7 @@
         "| `-o, --output <arq>` | Caminho do artefato de saída |",
         "| `--abi {sysv,win64}` | ABI do backend asm (padrão por plataforma) |",
         "| `--unsafe` | Desliga a instrumentação de segurança |",
-        "| `--audit` | Roda a auditoria estática e imprime o relatório |",
+        "| `--audit` | Roda a auditoria estática, imprime o relatório e sugere `--backend auto` se o backend escolhido não cobrir algum recurso |",
         "| `--emit-only` | Só gera o fonte (`.pyro`/`.s`); não invoca o toolchain |",
         "| `--dis` | Desassembla o bytecode Pyro gerado |",
         "| `--tokens` | Imprime os tokens do lexer |",
@@ -1455,7 +1455,19 @@
         "python burnout/cryoc.py app.cryo --audit",
         "```",
         "",
-        "Se houver qualquer achado de nível ALTO, a auditoria o registra na saída de erro."
+        "Se houver qualquer achado de nível ALTO, a auditoria o registra na saída de erro.",
+        "",
+        "### Sugestão de backend",
+        "",
+        "A auditoria também confere se o backend escolhido cobre os recursos usados. Se não cobrir (um recurso exclusivo, ou um bloco estrangeiro que ele não emite), sugere `--backend auto`:",
+        "",
+        "```text",
+        "$ python burnout/cryoc.py app.cryo --backend c --audit",
+        "[Auditoria] O backend 'c' não cobre recursos [map].",
+        "            Use --backend auto (escolheria 'pyro') ou --backend pyro.",
+        "```",
+        "",
+        "Disponível na API como `burnout.missing_capabilities(ast, backend)`."
       )
     },
 
