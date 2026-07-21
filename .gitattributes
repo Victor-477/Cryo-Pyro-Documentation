@@ -1,2 +1,8 @@
-# Auto detect text files and perform LF normalization
+# Normalização de fim de linha
 * text=auto
+
+# Reconhecimento de linguagem no GitHub (Linguist) — consistente com os
+# demais repositórios (a doc não contém arquivos .cryo/.pyro; aqui só por
+# consistência de convenção).
+*.cryo linguist-language=Rust
+*.pyro binary
