@@ -2175,7 +2175,7 @@
         "",
         "| # | Item | Description |",
         "|---|---|---|",
-        "| 9.1 | **Pyro VM in C** | Rewrite the VM (today [`pyro/vm/main.go`](#/pyro-vm)) as portable single-file C, built by the same gcc/MinGW toolchain the c/asm backends already use — drops the **Go** dependency for running `.pyro` (output parity checked against the Go VM) |",
+        "| 9.1 | ✅ **Pyro VM in C** | Full single-file C VM ([`pyro/vm/main.c`](#/pyro-vm)) built by the same gcc/MinGW/MSVC toolchain as the c/asm backends — drops the **Go** dependency for running `.pyro`. Full parity with the Go VM: every opcode + all 27 NATIVE builtins, with the harness comparing **stdout + stderr + exit code** across the examples and abort/try-catch cases (byte-identical messages and stack traces) |",
         "| 9.2 | **Minimal Pyro runtime** | Specify/isolate the runtime (I/O, allocation, strings, maps, GC/refcount) so the C VM and future targets share identical semantics |",
         "| 9.3 | **Cryo→Pyro compiler written in Cryo** | Reimplement lexer + parser + analysis + codegen in Cryo (using Phase 8 features), compiled to `.pyro` and run on the VM — drops the **Python** dependency for compiling |",
         "| 9.4 | **3-stage bootstrap** | stage0 (Python) compiles the Cryo compiler → stage1; stage1 recompiles itself → stage2; **verify stage1 == stage2** (fixpoint) as the self-hosting proof, gated in CI |",
