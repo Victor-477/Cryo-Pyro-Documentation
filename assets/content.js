@@ -577,7 +577,14 @@
         "",
         "A **non-capturing** lambda becomes a synthetic top-level function, so it costs nothing extra at runtime. A lambda that closes over an enclosing variable needs a closure cell, which the VM does not have yet — the compiler says so explicitly and points you at go/node.",
         "",
-        "> **Chained calls** like `f(1)(2)` are not yet parsed as a call on a call's result — assign the returned function to a variable first. See `example_funcvalues.cryo` in [Examples](#/exemplos)."
+        "**Chained calls** work too — you can call the function a call returns, without going through a variable:",
+        "",
+        "```cryo",
+        "fn pick(bool b) -> fn(int)->int ={ if (b) { return dbl; } return inc; }",
+        "print(pick(true)(10));    // 20",
+        "```",
+        "",
+        "See `example_funcvalues.cryo` in [Examples](#/exemplos)."
       )
     },
     {
@@ -2575,6 +2582,7 @@
         "| 10.7 | **Interfaces / traits** — structural contracts, static dispatch, basis for bounded generics | ⬜ |",
         "| 10.8 | **Module namespaces & visibility** — `import \"x\" as ns`, `ns::fn`, `pub` | ⬜ |",
         "| 10.9 | **Ranges & slices as values** — `a..b` as an expression, `xs[a..b]` slicing | ⬜ |",
+        "| 10.10 | **[Postfix calls `f(a)(b)`](#/lambdas)** — was a silent mis-parse (`print(p(1)(10))` became `print(p(1), 10)`). Argument lists are now strict, and a chained call is a real `CallValueExpr` lowered to `CALL_VALUE` | ✅ done |",
         "",
         "Sequence: **10.1** ships the range syntax (done); **10.2–10.4** deliver day-to-day collection and stdlib ergonomics; **10.5 → 10.7** add abstraction power (generics, traits, bounded generics); **10.8** scales to large codebases; **10.9** rounds out ranges/slices. Each is a feature mainstream languages make programmers reach for — delivered with Pyro parity so nothing is locked to the go backend.",
         "",
