@@ -95,39 +95,40 @@ Then open your browser and navigate to: **[http://localhost:8877](http://localho
 
 ---
 
-## ✍️ Editing the Documentation
+## ✍️ Adding, moving and removing pages
 
-All pages, headings, and descriptions are stored inside [`assets/content.js`](assets/content.js).
+Everything below happens in `assets/content/`. Never edit `assets/content.js` —
+it is regenerated from these files and your changes would be overwritten.
 
-To add, edit, or remove sections:
-1. Open [`assets/content.js`](assets/content.js) in your text editor.
-2. Locate the `pages` array, which holds one object per documentation page. Each `body` is markdown, passed to the `md()` helper as **one argument per line**:
-   ```javascript
-   {
-     slug: "language-overview",
-     group: "Language",
-     title: "Overview",
-     lead: "A guide to Cryo language principles.",
-     body: md(
-       "## Overview",
-       "",
-       "Write markdown here, one line per argument.",
-       "",
-       "```cryo",
-       "int x = 42;",
-       "```"
-     )
-   }
-   ```
-   Lines are joined with `\n`. This is why bodies are **not** template literals — page content contains backticks for fenced code blocks, which would terminate a template literal early.
-3. Update the `groups` array at the bottom of the file — it sets both the sidebar order and the previous/next pager order. A page missing from `groups` will not appear in the sidebar.
-4. Refresh the page in your browser. The search index and sidebar rebuild automatically on reload.
+**Add a page.** Create `assets/content/<group>/<slug>.md` with the frontmatter
+shown above, then add its slug to that group's `pages:` list in
+[`_nav.yaml`](assets/content/_nav.yaml). A page missing from `_nav.yaml` is not
+silently ignored — the build refuses it, because nothing would link to it.
 
-Internal links use the hash router: `[Backends](#/backends)`, where the target matches another page's `slug`.
+**Reorder or move a page.** `_nav.yaml` alone decides the sidebar order *and*
+the previous/next pager order; the file layout does not. To move a page between
+groups, move the `.md` file into the other group's directory, move its slug in
+`_nav.yaml`, and update the `group:` in its frontmatter — the build checks
+those last two agree.
+
+**Rename a page.** Renaming the file changes its URL, since the slug *is* the
+filename. Grep for `#/<old-slug>` first; the checker below reports links you
+miss.
+
+Then rebuild and refresh:
+
+```bash
+python tools/build_content.py
+```
+
+Internal links use the hash router: `[Backends](#/backends)`, where the target
+matches another page's slug.
 
 ### Checking your edits
 
-`content.js` is plain JavaScript, so Node can validate it without a browser — this catches syntax errors, pages missing from a group, and dead internal links:
+`content.js` is plain JavaScript, so Node can validate the generated bundle
+without a browser — this catches pages missing from a group and dead internal
+links:
 
 ```bash
 node -e 'global.window={};require("./assets/content.js");const D=window.DOCS,s=new Set(D.pages.map(p=>p.slug));let bad=0;const g=new Set();for(const x of D.groups)for(const p of x.pages){g.add(p);if(!s.has(p)){console.log("missing page:",p);bad++}}for(const p of D.pages)if(!g.has(p.slug)){console.log("ungrouped:",p.slug);bad++}const re=/#\/([a-z0-9-]+)/g;for(const p of D.pages){let m;const t=(p.lead||"")+p.body;while(m=re.exec(t))if(!s.has(m[1])){console.log("dead link:",p.slug,"->",m[1]);bad++}}console.log(bad?bad+" problem(s)":"OK: "+D.pages.length+" pages, all links resolve")'
