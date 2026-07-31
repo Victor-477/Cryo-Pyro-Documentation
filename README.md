@@ -23,12 +23,59 @@ A modern, high-performance, **Next.js-style documentation website** for the Cryo
 ```text
 Cryo Pyro Documentation/
 ├── index.html            # Main HTML Shell & Layout structure
+├── tools/
+│   └── build_content.py  # Builds assets/content.js from assets/content/
 └── assets/
     ├── app.js            # Router, Markdown compiler, Search indexer, & TOC tracker
     ├── styles.css        # Responsive, variable-driven CSS theme rules
     ├── highlight.js      # Custom client-side syntax highlighting implementation
-    └── content.js        # Core documentation pages, written in raw Markdown
+    ├── content.js        # GENERATED — do not edit
+    └── content/          # The pages you actually edit
+        ├── _nav.yaml     # Sidebar groups and page order
+        ├── gettingStarted/
+        │   ├── introducao.md
+        │   └── ...
+        ├── cryoLanguage/
+        └── ...           # one directory per sidebar group
 ```
+
+### ✍️ Editing the documentation
+
+Each page is one Markdown file with YAML frontmatter, and **its filename is its
+slug** — `cryoLanguage/erros.md` is the page at `#/erros`:
+
+```markdown
+---
+title: "Error handling"
+group: "The Cryo Language"
+lead: "`try` / `catch` / `finally`, `throw` and `assert`."
+---
+
+## try / catch / finally
+...
+```
+
+After editing, rebuild the bundle the browser loads:
+
+```bash
+python tools/build_content.py
+```
+
+```bash
+python tools/build_content.py --check   # CI: fails if content.js is stale
+```
+
+**Why a build step and not 59 fetches?** Because this site is meant to open
+from `file://`, and browsers refuse `fetch()` of local files there. Loading the
+pages at runtime would work when served and silently show nothing when opened
+from disk — breaking the offline-first promise for exactly the people reading
+offline. So the Markdown files are the source, `content.js` is the artifact,
+and there is still no dependency to install: the build uses only the Python
+standard library.
+
+The build also refuses two mistakes: a page that no `_nav.yaml` entry links to
+(invisible to readers), and a page whose frontmatter `group` disagrees with the
+group it is listed under.
 
 ---
 

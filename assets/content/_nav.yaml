@@ -1,0 +1,35 @@
+# Sidebar order. The order here is the navigation order and the
+# previous/next pager order — the file layout does not decide it.
+# Each entry: a group title and the page slugs it contains, where a
+# slug is the .md filename in that group's directory.
+
+- title: "Getting Started"
+  dir: "gettingStarted"
+  pages: ["introducao", "construido", "arquitetura", "instalacao", "inicio-fast"]
+- title: "The Cryo Language"
+  dir: "cryoLanguage"
+  pages: ["sintaxe", "tipos", "funcoes", "lambdas", "modulos", "controle-de-fluxo", "operadores", "structs-enums", "arrays", "mapas", "opcionais", "json", "erros"]
+- title: "Concurrency & Network"
+  dir: "concurrencyNetwork"
+  pages: ["concorrencia", "http"]
+- title: "LLM & Agents"
+  dir: "llmAgents"
+  pages: ["schema", "tools", "agent", "llm-real", "skills", "maquina"]
+- title: "The Burnout Compiler"
+  dir: "burnoutCompiler"
+  pages: ["cli", "backends", "estrangeiros", "semantica", "seguranca", "biblioteca"]
+- title: "Pyro — Bytecode & VM"
+  dir: "pyroBytecodeVM"
+  pages: ["pyro-formato", "pyro-isa", "pyro-vm"]
+- title: "Native & Full-Stack"
+  dir: "nativeFullStack"
+  pages: ["selfhost", "nativo", "wasm", "fullstack", "frontend", "api"]
+- title: "Ecosystem"
+  dir: "ecosystem"
+  pages: ["editor", "lsp", "formatador", "roadmap"]
+- title: "Reference"
+  dir: "reference"
+  pages: ["builtins", "palavras-key"]
+- title: "Examples"
+  dir: "examples"
+  pages: ["exemplos", "ex-core", "ex-colecoes", "ex-tipos", "ex-funcoes", "ex-dados", "ex-modulos", "ex-programas", "ex-web", "ex-ia", "ex-foreign", "ex-catalogo"]
