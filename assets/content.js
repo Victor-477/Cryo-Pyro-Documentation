@@ -3540,7 +3540,7 @@
         "| Item | Description |",
         "|---|---|",
         "| 11.21 | ✅ **[Beyond peephole](#/pyro-formato)** — a new AST pass runs before code generation, so constant/copy propagation, dead-local elimination and inlining reach every backend; the old peephole was pyro-only and three instructions wide |",
-        "| 11.22 | **Faster dispatch** — threaded dispatch in the C VM, with a benchmark suite so \"faster\" is measured, not asserted |",
+        "| 11.22 | 🟡 **Faster dispatch** — the benchmark suite landed and did its job. Computed-goto threading was built and passed every correctness gate, then measured **3% slower** overall (and 71% slower on string-heavy work), so it was reverted. The numbers are tracked in `Pyro/BENCHMARKS.md` |",
         "| 11.23 | **Incremental compilation** — per-module artifacts keyed by content hash |",
         "| 11.24 | **Diagnostics** — all errors in one pass with spans and a caret, plus did-you-mean suggestions everywhere |",
         "| 11.25 | **Debugging and profiling** — breakpoints over the existing pc→line table, and a sampling profiler |",
