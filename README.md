@@ -4,7 +4,7 @@
 [![Dependencies](https://img.shields.io/badge/Dependencies-None-brightgreen.svg)](index.html)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A modern, high-performance, **Next.js-style documentation website** for the Cryo language, Burnout compiler, and Pyro VM. Features sidebar navigation, search capabilities, syntax highlighting, a table of contents index, and a light/dark mode theme toggle — **completely static, lightweight, and offline-first** with zero external dependencies (no CDNs, no build processes).
+A modern, high-performance, **Next.js-style documentation website** for the Cryo language, Burnout compiler, and Pyro VM. Features sidebar navigation, search capabilities, syntax highlighting, a table of contents index, and a light/dark mode theme toggle — **completely static and lightweight** with zero external dependencies (no CDNs, no build processes).
 
 ---
 
@@ -13,8 +13,9 @@ A modern, high-performance, **Next.js-style documentation website** for the Cryo
 * **Instant Search:** Press `Ctrl+K` (or `⌘+K`) or click the search box to search the entire documentation library instantly.
 * **Responsive Layout:** Adaptive sidebar navigation, header, and table of contents that scale gracefully from mobile phones to ultra-wide displays.
 * **Light / Dark Mode Toggle:** Smooth HSL-tailored thematic switch (Cryo "Ice" / Pyro "Fire" aesthetics) stored locally to persist choices.
-* **Zero Dependencies:** Raw JavaScript-powered hash router, lightweight CSS layout, and a bundled client-side syntax highlighter for Cryo, C, Go, and JSON.
-* **Offline First:** Open the website directly in any browser using the `file://` protocol or host it easily on any static file server.
+* **Zero Dependencies:** Raw JavaScript-powered hash router, lightweight CSS layout, and a bundled client-side syntax highlighter for Cryo, C, Go, and JSON. Nothing to install, nothing to build.
+* **Markdown Sources:** Every page is a plain `.md` file under `assets/content/`, loaded at runtime — edit a page, refresh, done.
+* **Static Hosting:** Drop the folder on any static file server (GitHub Pages, nginx, `python -m http.server`). No backend, no build pipeline.
 
 ---
 
@@ -23,14 +24,11 @@ A modern, high-performance, **Next.js-style documentation website** for the Cryo
 ```text
 Cryo Pyro Documentation/
 ├── index.html            # Main HTML Shell & Layout structure
-├── tools/
-│   └── build_content.py  # Builds assets/content.js from assets/content/
 └── assets/
-    ├── app.js            # Router, Markdown compiler, Search indexer, & TOC tracker
+    ├── app.js            # Content loader, router, Markdown compiler, search, TOC
     ├── styles.css        # Responsive, variable-driven CSS theme rules
     ├── highlight.js      # Custom client-side syntax highlighting implementation
-    ├── content.js        # GENERATED — do not edit
-    └── content/          # The pages you actually edit
+    └── content/          # The documentation itself — one .md file per page
         ├── _nav.yaml     # Sidebar groups and page order
         ├── gettingStarted/
         │   ├── introducao.md
@@ -55,81 +53,65 @@ lead: "`try` / `catch` / `finally`, `throw` and `assert`."
 ...
 ```
 
-After editing, rebuild the bundle the browser loads:
+Save the file and refresh the browser. There is no build step — `app.js` reads
+`_nav.yaml`, fetches the pages it lists, and parses the frontmatter itself.
 
-```bash
-python tools/build_content.py
-```
+Because the pages are fetched, **the site must be served, not opened as a
+`file://` path** — browsers block `fetch()` of local files. See
+[Getting Started](#-getting-started) below. Opened from disk, the site says so
+explicitly with the command to run; it does not fail silently.
 
-```bash
-python tools/build_content.py --check   # CI: fails if content.js is stale
-```
-
-**Why a build step and not 59 fetches?** Because this site is meant to open
-from `file://`, and browsers refuse `fetch()` of local files there. Loading the
-pages at runtime would work when served and silently show nothing when opened
-from disk — breaking the offline-first promise for exactly the people reading
-offline. So the Markdown files are the source, `content.js` is the artifact,
-and there is still no dependency to install: the build uses only the Python
-standard library.
-
-The build also refuses two mistakes: a page that no `_nav.yaml` entry links to
-(invisible to readers), and a page whose frontmatter `group` disagrees with the
-group it is listed under.
+A page's frontmatter `group` must match the group `_nav.yaml` lists it under —
+the loader reports a mismatch rather than quietly using one of them.
 
 ---
 
 ## 🚀 Getting Started
 
-### Option 1: Open Directly (Simple)
-Simply double-click [`index.html`](index.html) or drag and drop it into your preferred web browser (Chrome, Firefox, Safari, Edge).
-
-### Option 2: Host Locally (Recommended)
-Hosting via a local server avoids browser-specific security policies regarding local file imports (`file://` constraints on certain browsers):
+Serve the folder — any static server will do:
 
 ```bash
 cd "Cryo Pyro Documentation"
 python -m http.server 8877
 ```
-Then open your browser and navigate to: **[http://localhost:8877](http://localhost:8877)**
+
+Then open **[http://localhost:8877](http://localhost:8877)**.
+
+> Double-clicking `index.html` will **not** work. The pages are fetched from
+> `assets/content/`, and every browser blocks `fetch()` under the `file://`
+> protocol for security reasons. Opened that way the site tells you so and
+> prints the command above, rather than showing an empty page.
 
 ---
 
 ## ✍️ Adding, moving and removing pages
 
-Everything below happens in `assets/content/`. Never edit `assets/content.js` —
-it is regenerated from these files and your changes would be overwritten.
+Everything happens in `assets/content/`. Save, refresh, done — nothing to rebuild.
 
 **Add a page.** Create `assets/content/<group>/<slug>.md` with the frontmatter
 shown above, then add its slug to that group's `pages:` list in
-[`_nav.yaml`](assets/content/_nav.yaml). A page missing from `_nav.yaml` is not
-silently ignored — the build refuses it, because nothing would link to it.
+[`_nav.yaml`](assets/content/_nav.yaml). `_nav.yaml` is what the loader reads,
+so a page it does not list is never fetched and never appears.
 
 **Reorder or move a page.** `_nav.yaml` alone decides the sidebar order *and*
 the previous/next pager order; the file layout does not. To move a page between
 groups, move the `.md` file into the other group's directory, move its slug in
-`_nav.yaml`, and update the `group:` in its frontmatter — the build checks
-those last two agree.
+`_nav.yaml`, and update the `group:` in its frontmatter — the loader checks
+those last two agree and reports it if they don't.
 
 **Rename a page.** Renaming the file changes its URL, since the slug *is* the
-filename. Grep for `#/<old-slug>` first; the checker below reports links you
-miss.
-
-Then rebuild and refresh:
-
-```bash
-python tools/build_content.py
-```
+filename. Check for inbound `#/<old-slug>` links first; the checker below
+reports the ones you miss.
 
 Internal links use the hash router: `[Backends](#/backends)`, where the target
 matches another page's slug.
 
 ### Checking your edits
 
-`content.js` is plain JavaScript, so Node can validate the generated bundle
-without a browser — this catches pages missing from a group and dead internal
+Node can validate the content without a browser — this catches pages listed in
+`_nav.yaml` that don't exist, `.md` files nothing links to, and dead internal
 links:
 
 ```bash
-node -e 'global.window={};require("./assets/content.js");const D=window.DOCS,s=new Set(D.pages.map(p=>p.slug));let bad=0;const g=new Set();for(const x of D.groups)for(const p of x.pages){g.add(p);if(!s.has(p)){console.log("missing page:",p);bad++}}for(const p of D.pages)if(!g.has(p.slug)){console.log("ungrouped:",p.slug);bad++}const re=/#\/([a-z0-9-]+)/g;for(const p of D.pages){let m;const t=(p.lead||"")+p.body;while(m=re.exec(t))if(!s.has(m[1])){console.log("dead link:",p.slug,"->",m[1]);bad++}}console.log(bad?bad+" problem(s)":"OK: "+D.pages.length+" pages, all links resolve")'
+node -e 'const fs=require("fs"),d="assets/content/",nav=fs.readFileSync(d+"_nav.yaml","utf8");let g=[],c=null;for(const l of nav.split(/\r?\n/)){const s=l.trim();if(!s||s[0]==="#")continue;if(s.startsWith("- title:"))g.push(c={dir:"",pages:[]});else if(s.startsWith("dir:"))c.dir=JSON.parse(s.slice(4).trim());else if(s.startsWith("pages:"))c.pages=JSON.parse(s.slice(6).trim())}let bad=0;const S=new Set(),F=new Map();for(const x of g)for(const p of x.pages){S.add(p);const f=d+x.dir+"/"+p+".md";fs.existsSync(f)?F.set(p,fs.readFileSync(f,"utf8")):(console.log("listed but missing:",f),bad++)}for(const x of g)for(const f of fs.readdirSync(d+x.dir))if(f.endsWith(".md")&&!S.has(f.slice(0,-3))){console.log("orphan (not in _nav.yaml):",x.dir+"/"+f);bad++}for(const[p,t]of F){const re=/#\/([a-z0-9-]+)/g;let m;while(m=re.exec(t))if(!S.has(m[1])){console.log("dead link:",p,"->",m[1]);bad++}}console.log(bad?bad+" problem(s)":"OK: "+S.size+" pages, all links resolve")'
 ```
