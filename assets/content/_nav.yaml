@@ -20,7 +20,7 @@
   pages: ["cli", "backends", "estrangeiros", "semantica", "seguranca", "biblioteca"]
 - title: "Pyro — Bytecode & VM"
   dir: "pyroBytecodeVM"
-  pages: ["pyro-formato", "pyro-isa", "pyro-vm"]
+  pages: ["pyro-formato", "pyro-isa", "pyro-vm", "depuracao", "integridade"]
 - title: "Native & Full-Stack"
   dir: "nativeFullStack"
   pages: ["selfhost", "nativo", "wasm", "fullstack", "frontend", "api"]

@@ -15,8 +15,8 @@ lead: "Six code generators from the same AST. Each covers a subset of the langua
 | math/conversion/string builtins | ✅ | ✅ | ✅ (math) | ❌ | ✅ (NATIVE) | ❌ |
 | struct | ✅ | ✅ | ✅ | ✅¹ | ✅ | ❌ |
 | try/catch/finally | ✅² | ✅ | ✅ | ❌ | ✅ | ❌ |
-| map `map<K,V>` | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
-| optionals `T?` / null-safety | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| map `map<K,V>` | ✅ | ✅ | ✅⁴ | ❌ | ✅ | ❌ |
+| optionals `T?` / null-safety | ✅ | ✅ | ✅⁵ | ❌ | ✅ | ❌ |
 | native JSON | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
 | HTTP (`http_get`/`http_post`/`sleep`) | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
 | serving (`http_serve`) | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
@@ -30,6 +30,10 @@ lead: "Six code generators from the same AST. Each covers a subset of the langua
 ¹ The `asm` backend supports **struct return in registers** (`int`/`bool` fields), per each ABI's classification. Large or by-value structs point to `--backend c`.
 
 ² On Go, `try/catch/finally` becomes `func(){ defer/recover }()`; `throw` becomes `panic`.
+
+⁴ Since 11.27 the C backend has maps: an open-addressed hash table in the runtime, with keys and values of `int`, `number`, `string` or `bool`. Rendering and `keys()` order by the key's own **text**, matching the VM and the go/node backends — so `map<int,…>` prints `{1: …, 10: …, 2: …}`, which looks odd and is correct.
+
+⁵ Also 11.27: `int?`, `number?`, `bool?` and `string?` are pointers, the same representation the go backend uses. An optional of a struct is still refused, by name.
 
 ³ The `wasm` backend targets a **numeric subset** (`int`/`bool` as `i64`) — see [WebAssembly](#/wasm). Anything outside it is **rejected at compile time** rather than silently mis-compiled.
 

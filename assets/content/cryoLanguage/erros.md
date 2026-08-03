@@ -146,3 +146,49 @@ match r {
 The second is a real restriction: renaming the body for you would mean silently rewriting your identifiers, so the compiler asks instead. Guards are lowered in the **front end** — the cases sharing a constructor become one case holding an `if`/`else` chain — so no code generator knows guards exist, and **pyro, go and node produce identical output** with no backend-specific behaviour to keep in step. The subject is still evaluated exactly once.
 
 See [`example_match_guards.cryo`](https://github.com/victorscosta/Pyro_Cryo/blob/main/Cryo/examples/example_match_guards.cryo).
+
+## `or_else` — the value, or a default
+
+`match` is the general tool. When all you want is "the value if it worked, otherwise this", `or_else` says that in one line:
+
+```cryo
+enum Result { Ok(int), Err(string) }
+
+Result a = Ok(5);
+Result b = Err("no");
+
+int x = or_else(a, 0);        // 5
+int y = or_else(b, 9);        // 9
+print(or_else(a, 0) * 2);     // 10 — an ordinary int, usable in arithmetic
+```
+
+It lowers to a shared helper holding a `match`, so no code generator learns anything new and all three backends produce the same result.
+
+Any variant that is **not** `Ok` takes the default — the arm is a wildcard, not `Err`, so an enum with a third variant behaves the way you would expect:
+
+```cryo
+enum R { Ok(int), Err(string), Timeout(int) }
+R t = Timeout(3);
+print(or_else(t, 42));        // 42
+```
+
+### Why `Ok` specifically
+
+`Result`, `Ok` and `Err` are **ordinary declarations you write** — there is no built-in Result type, and nothing in an enum marks which variant means success. `or_else` therefore hard-codes the name `Ok`, joining the convention that [`?` propagation](#/erros) has used since Phase 8.3 rather than inventing a second one.
+
+If your program defines its own `or_else`, yours wins.
+
+## `??` does not work on an enum
+
+`??` asks whether a value is **null**. An `Err("no")` is not null, so the operator could only hand the value straight back — which used to print the internal tagged form, `{tag: Err, val0: no}`, into your output.
+
+It is now refused at compile time:
+
+```cryo
+Result r = Err("no");
+print(r ?? 9);   // ⛔ '??' cannot be used on 'Result', which is an enum with data
+```
+
+The message points at `match`, which works because your program says which variant it has. `??` on an **optional** — the operator's actual job — is unchanged, and so is `??` on a payload-less enum.
+
+This is the mirror image of the `or_else` decision above, and the two are consistent on *intent*: `?` and `or_else` are Result tools, and reaching for one declares the shape you are working with. `??` is the null operator, used on ordinary optionals everywhere, so quietly giving it Result semantics would change what an existing operator means for programs that never asked.

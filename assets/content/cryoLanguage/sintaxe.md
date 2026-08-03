@@ -59,6 +59,19 @@ print("area = ${circleArea(2.5)}");
 
 The compiler desugars it to concatenation with `to_string(...)` — works on the pyro, go and node backends. `${` without a closing `}`, an empty `${}`, or a fragment that is not a single complete expression (`${x y}`) are syntax errors.
 
+### Writing a literal `${...}`
+
+Escape the dollar with a backslash:
+
+```cryo
+print("\${notavar}");     // prints: ${notavar}
+print("\$5.00");          // prints: $5.00
+int x = 7;
+print("\${a} and ${x}");  // prints: ${a} and 7
+```
+
+This matters more than it looks: without it there was no way to write documentation, shell snippets, or any Cryo source *about* Cryo. An escaped backslash still leaves a live interpolation, so `"\\${x}"` is a backslash followed by the value.
+
 ### Format specs
 
 An interpolation can carry a **format spec** after a colon. It is a subset of the format mini-language used by Python and Rust — a convention worth reusing rather than reinventing:
