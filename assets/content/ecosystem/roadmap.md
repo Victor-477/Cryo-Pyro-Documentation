@@ -151,7 +151,7 @@ Today the sandbox is one on/off switch per native: the right shape for a demo, t
 | 11.22 | 🟡 **Faster dispatch** — the benchmark suite landed and did its job. Computed-goto threading was built and passed every correctness gate, then measured **3% slower** overall (and 71% slower on string-heavy work), so it was reverted. The numbers are tracked in `Pyro/BENCHMARKS.md` |
 | 11.23 | ✅ **[Incremental compilation](#/pyro-isa)** — a parse cache per module and an artifact cache per build, both content-keyed. An unchanged rebuild does 10× less work; the key includes the compiler's own source, so editing a code generator cannot return the previous version's output |
 | 11.24 | ✅ **[Diagnostics](#/erros)** — every error in a pass, each shown against its own source line with a caret under the offending name, and a did-you-mean when a close one exists |
-| 11.25 | **Debugging and profiling** — breakpoints over the existing pc→line table, and a sampling profiler |
+| 11.25 | ✅ **Debugging and profiling** — breakpoints over the existing pc→line table, and a sampling profiler |
 
 ### Close-out from Phase 10
 
@@ -164,6 +164,19 @@ Today the sandbox is one on/off switch per native: the right shape for a demo, t
 **Sequence.** 11.1 first — it unblocks Track B entirely. Then 11.6, which is what turns the VM into an application platform. 11.10 should start early and stay in progress: building something real is the only reliable way to discover what the other items missed.
 
 > Phase 10 asked *"can the language express this?"*. Phase 11 asks *"can I ship this, run it safely, and trust what it returns?"*.
+
+## Phase 12 — From a language to a toolchain
+
+Phase 11 asked *"can I ship this?"*. Phase 12 asks *"can a team work in it?"*.
+
+| Item | Description |
+|---|---|
+| 12.1 | ✅ **A test framework in the language** — `test fn name() ={ … }` and `cryoc test file.cryo`. `test` is a **contextual** keyword, so `int test = 0;` still compiles; the runner is a front-end lowering, so the same suite behaves identically on every backend |
+| 12.2 | ✅ **REPL** — `cryoc repl`. Declarations and assignments persist, everything else runs once: replaying arbitrary statements would re-run a `write_file(…)` on every later line |
+| 12.3 | ✅ **[Packages](#/pacotes)** — `cryo.toml`, `cryo.lock` and `import "@dep/file.cryo"`. No registry, no network: a dependency is a path. The lock pins **content**, so it catches an edit that leaves the version untouched |
+| 12.4 | ✅ **CI over the examples** — every example compiled on each backend and run where it can be, and every backend that produced output must produce **the same** output. "It compiled" is a far weaker claim than "it agrees" |
+| 12.5 | ⬜ **Concurrency in the VM** — `spawn`/`await` exist only on the go backend today; the VM needs its own scheduler for parity |
+| 12.6 | ⬜ **Self-hosted parser: the desugarings** — try/catch, switch, lambdas, map literals, casts, imports, generics and traits |
 
 ## Principles
 
