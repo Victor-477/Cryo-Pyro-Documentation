@@ -25,6 +25,17 @@ lead: "Six code generators from the same AST. Each covers a subset of the langua
 | runs in the browser | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | foreign blocks | `>Go(...)` | `>Node(...)` | `>C(...)` | ❌ | ❌ | ❌ |
 
+> **This table is generated, not remembered.** `python Burnout/tests/test_examples.py --matrix`
+> compiles one minimal probe per row on every backend and reports what actually
+> happened — ✅ compiles *and runs*, ⚠️ compiles but fails to run, ❌ refused.
+> Compiling is deliberately not enough for a ✅: a backend once produced
+> perfectly plausible Go that the Go compiler then rejected, and a
+> hand-maintained table called that a yes for two phases.
+>
+> Known gaps it currently reports: a payload-less **enum member used as a
+> value** compiles but does not run on node, go and c (roadmap 12.9), and the C
+> backend refuses `match` with payloads, lambdas and JSON.
+
 > **`--backend frontend`** is not in this matrix because it does not generate a program: it assembles [html/javascript/CSS blocks](#/frontend) into a **document**. Under `--emit pyro` it delegates the program's logic to the wasm column above.
 
 ¹ The `asm` backend supports **struct return in registers** (`int`/`bool` fields), per each ABI's classification. Large or by-value structs point to `--backend c`.
