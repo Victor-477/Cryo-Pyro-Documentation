@@ -97,11 +97,24 @@ A cycle of `await`s is reported and the tasks named, rather than hanging:
   task 3 is awaiting task 4, which has not finished
 ```
 
-### Two places the backends disagree
+### A future holds its value
 
-- **Awaiting the same future twice** returns the value again on pyro, but
-  deadlocks a go binary — there the future is a channel and the second receive
-  blocks forever. Await a future once.
-- **The order of interleaved output** between tasks is fixed on pyro and a race
-  on go. A program whose output depends on that ordering has no stable meaning
-  on the go backend.
+Awaiting the same future more than once is fine, and gives the same value each
+time on every backend that supports concurrency:
+
+```cryo
+future<int> f = spawn t();
+print(await f);
+print(await f);      // the same value again
+```
+
+A future is something you look at, not a queue you drain. (This did not always
+hold: on the go backend a future used to *be* a channel, so a second `await`
+blocked forever while pyro returned the value — fixed in roadmap 12.11.)
+
+### Where the backends still disagree
+
+**The order of interleaved output** between tasks is fixed on pyro and a race on
+go. A program whose output depends on that ordering has no stable meaning on the
+go backend, so do not rely on it — collect results through `await` instead of
+through the order things happen to print.
