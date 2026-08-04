@@ -175,7 +175,7 @@ Phase 11 asked *"can I ship this?"*. Phase 12 asks *"can a team work in it?"*.
 | 12.2 | ✅ **REPL** — `cryoc repl`. Declarations and assignments persist, everything else runs once: replaying arbitrary statements would re-run a `write_file(…)` on every later line |
 | 12.3 | ✅ **[Packages](#/pacotes)** — `cryo.toml`, `cryo.lock` and `import "@dep/file.cryo"`. No registry, no network: a dependency is a path. The lock pins **content**, so it catches an edit that leaves the version untouched |
 | 12.4 | ✅ **CI over the examples** — every example compiled on each backend and run where it can be, and every backend that produced output must produce **the same** output. "It compiled" is a far weaker claim than "it agrees" |
-| 12.5 | ⬜ **Concurrency in the VM** — `spawn`/`await` exist only on the go backend today; the VM needs its own scheduler for parity |
+| 12.5 | ✅ **[Concurrency in the VM](#/concorrencia)** — `spawn`/`await` run on the pyro backend now, on a cooperative single-threaded scheduler. Deterministic output and no locking, at the cost of CPU parallelism; `sleep` is the yield point, so five 200ms tasks cost 217ms instead of 1016ms |
 | 12.6 | ⬜ **Self-hosted parser: the desugarings** — try/catch, switch, lambdas, map literals, casts, imports, generics and traits |
 
 ## Principles
