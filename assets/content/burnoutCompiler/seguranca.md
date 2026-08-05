@@ -9,8 +9,24 @@ On by default; turn off with `--unsafe`. It applies, where relevant, to the thre
 
 - **Integer overflow** — `+ - *` go through helpers that abort on overflow (`cryoAddOvf`/`cryoSubOvf`/`cryoMulOvf` on Go; `cryo_add_ovf`/… via `__builtin_*_overflow` on C).
 - **Division/modulo by zero** — `/` and `%` are always protected (`cryoIDivChk`/`cryoIModChk` on Go, runtime on C, and on the Pyro VM). **Division** `INT64_MIN / -1` aborts on all these backends (non-representable result); **modulo** `INT64_MIN % -1` returns `0` (well-defined).
-- **`assert(cond)` / `assert(cond, "msg")`** — aborts if the condition fails.
-- **Array bounds-checking** — guaranteed by Go natively; on C via the runtime.
+- **`assert(cond)` / `assert(cond, "msg")`** — aborts if the condition fails. The message is an expression, evaluated **only when the assertion fails**, so it can be as expensive as it needs to be.
+- **Array and string bounds-checking** — on every executable backend, with the same message:
+
+  ```
+  [Cryo Security] IndexError: index 5 out of bounds (len=2)
+  [Cryo Security] IndexError: index 5 out of bounds            // on a write
+  [Cryo Security] IndexError: string index out of bounds
+  ```
+
+  A read reports the length and a write does not; a string index has its own
+  wording. Those distinctions come from the Pyro VM, which is canonical for
+  every runtime message, and the other engines reproduce them exactly. The
+  *envelope* around the message still belongs to each engine — the VM prefixes
+  `[Pyro VM] `, a Go binary prints `panic: ` — but the message itself is
+  identical everywhere.
+
+  Maps are deliberately not bounds-checked: a missing key yields `null`, which
+  is how a map is meant to be read.
 - **Binary hardening (C backend)** — `-fstack-protector-strong`, `-D_FORTIFY_SOURCE=2`, `-Wformat-security`.
 
 ## unsafe / safe blocks

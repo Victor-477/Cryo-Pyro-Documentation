@@ -183,7 +183,7 @@ Phase 11 asked *"can I ship this?"*. Phase 12 asks *"can a team work in it?"*.
 | 12.11 | ✅ **[A future can be awaited twice](#/concorrencia)** — it used to deadlock the go binary |
 | 12.9 | ⬜ **A payload-less enum member used as a value** fails on node, go and c — `enum E { A, B } E e = A;` emits a bare `A` where the member is declared `E_A` |
 | 12.12 | ✅ **[`assert` made consistent](#/erros)** — the message is evaluated only on failure now, on every backend, and node's three other divergences are gone: it dropped the line number, dropped the `[Cryo Assert] ` prefix, and threw an object, so a *caught* assert printed `{}` |
-| 12.13 | ⬜ **The out-of-bounds message differs on all four backends** — the VM's English text, node's Portuguese one, the C runtime's third spelling, and go emitting no Cryo check at all |
+| 12.13 | ✅ **[One out-of-bounds message](#/seguranca)** — the VM's wording on every backend. node's was in Portuguese, the C runtime had a third spelling, and go emitted no check at all — it now has real bounds checks, which also turns a constant bad index from a Go *compile* error into the same abort |
 
 ## Principles
 
