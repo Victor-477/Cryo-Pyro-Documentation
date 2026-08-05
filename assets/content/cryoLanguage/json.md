@@ -14,7 +14,23 @@ struct Product { string sku; string name; number price; bool active; }
 
 Product p = new Product { sku: "SKU-2", name: "Pro Plan", price: 49.90, active: true };
 string payload = json_encode(p);
+// {"active":true,"name":"Pro Plan","price":49.9,"sku":"SKU-2"}
 ```
+
+### Keys come out in sorted order
+
+Object keys are ordered by the key's own text — **not** by the order fields are
+declared or entries inserted — and the same is true on every backend. Array
+order is preserved, of course.
+
+That is the same rule `print` and `to_string` already follow for any container,
+and it is the only order all four backends can produce: on the Pyro VM a struct
+*is* a map at runtime, with no declaration to consult. JSON itself treats key
+order as insignificant, so nothing is lost by fixing it — and what is gained is
+that the same program emits byte-identical JSON everywhere (roadmap 12.10).
+
+If you need a specific field order on the wire, build the string yourself; do
+not rely on declaration order.
 
 ## json_decode ... as T
 

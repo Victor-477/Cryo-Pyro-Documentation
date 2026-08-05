@@ -176,7 +176,13 @@ Phase 11 asked *"can I ship this?"*. Phase 12 asks *"can a team work in it?"*.
 | 12.3 | ✅ **[Packages](#/pacotes)** — `cryo.toml`, `cryo.lock` and `import "@dep/file.cryo"`. No registry, no network: a dependency is a path. The lock pins **content**, so it catches an edit that leaves the version untouched |
 | 12.4 | ✅ **CI over the examples** — every example compiled on each backend and run where it can be, and every backend that produced output must produce **the same** output. "It compiled" is a far weaker claim than "it agrees" |
 | 12.5 | ✅ **[Concurrency in the VM](#/concorrencia)** — `spawn`/`await` run on the pyro backend now, on a cooperative single-threaded scheduler. Deterministic output and no locking, at the cost of CPU parallelism; `sleep` is the yield point, so five 200ms tasks cost 217ms instead of 1016ms |
-| 12.6 | ⬜ **Self-hosted parser: the desugarings** — try/catch, switch, lambdas, map literals, casts, imports, generics and traits |
+| 12.6 | ✅ **[Self-hosted parser: the rest](#/selfhost)** — try/catch/finally, switch, lambdas, map literals, casts, imports, traits and spawn/await, plus a type grammar for `map<K,V>` and `fn(T)->R`. 11.28 called these desugarings; only the lambda body actually was. Generics remain |
+| 12.7 | ✅ **Stale phase tables reconciled** — Phases 6–9 still listed items that Phases 8–12 had shipped. Every claim was re-checked by running it before being ticked |
+| 12.8 | ✅ **A dynamic `assert` message is no longer dropped** — `assert(n == 4, "n was " + to_string(n))` reports *n was 5* on pyro now, as it already did on go and node. The expression had never even been evaluated |
+| 12.10 | ✅ **[`json_encode` key order](#/json)** — keys are ordered by their own text on every backend. It was two defects in opposite directions: node used insertion order for maps, while go and node used declaration order for structs and pyro sorted them |
+| 12.11 | ✅ **[A future can be awaited twice](#/concorrencia)** — it used to deadlock the go binary |
+| 12.9 | ⬜ **A payload-less enum member used as a value** fails on node, go and c — `enum E { A, B } E e = A;` emits a bare `A` where the member is declared `E_A` |
+| 12.12 | ⬜ **The `assert` message is evaluated eagerly on pyro and go, lazily on node** — so a message with a side effect behaves differently. Lazy is the better semantics; pyro and go should match node |
 
 ## Principles
 

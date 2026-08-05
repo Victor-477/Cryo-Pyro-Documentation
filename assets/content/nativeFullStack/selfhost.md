@@ -8,7 +8,7 @@ A language is self-hosting when its compiler is written in itself. Cryo's lives 
 | File | Role |
 |---|---|
 | `lexer.cryo` | tokenizer — produces a token stream byte-identical to `cryo/lexer.py` |
-| `parser.cryo` | recursive-descent parser |
+| `parser.cryo` | recursive-descent parser — its AST is checked against the reference parser's, statement by statement |
 | `codegen.cryo` | single-pass generator emitting a valid PYRO v2 binary |
 | `pyroc.cryo` | the CLI entry point: `read_file` + `args` + `write_bytes` |
 
@@ -44,3 +44,30 @@ Then use each to compile the same program. If the two `.pyro` outputs are byte-i
 All **three** routes agree byte-for-byte: the Python front-end, the self-hosted compiler on the VM, and the self-hosted compiler as a native binary — including when compiling its own 23 KB `codegen.cryo`.
 
 > Why it matters beyond the milestone: the self-hosted compiler is the most demanding Cryo program that exists, so it exercises the VM far harder than any test. Several latent runtime bugs were found precisely because its output stopped being byte-identical.
+
+## How the parser is checked
+
+The reference parser (`cryo/parser.py`) is the **oracle**. Both parsers read the
+same source, each AST is serialized to the same S-expression, and the two
+strings must be equal — statement by statement.
+
+This matters more than it sounds. "It did not crash" is otherwise the only thing
+a parser can be checked for, and a parser that quietly drops a clause still
+produces output. Comparing against an oracle catches the failures that *look*
+like success:
+
+- **Stacked `case` labels are one case, not two.** `case 1: case 2: body` is a
+  single case with two values in the reference. Emitting two cases parses the
+  same source into a different tree and still runs.
+- **`as` binds looser than `||`.** `a || b as int` casts the whole disjunction.
+  A cast level placed anywhere else in the precedence chain still parses.
+
+The self-hosted parser covers statements, the full precedence chain, postfix and
+slices, string interpolation, `try`/`catch`/`finally`, `switch`, lambdas, map
+literals, casts, imports, traits and `spawn`/`await`. Generics (`fn f<T>`) are
+the remaining gap.
+
+Three behaviours are **desugarings** rather than shapes, and are reproduced
+rather than parsed literally, because the reference lowers them too: a range
+for-loop becomes a C-style `for`, an interpolated string becomes a
+concatenation, and a lambda's `=> expr` becomes a body of `return expr`.

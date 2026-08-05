@@ -29,6 +29,23 @@ assert(factorial(10) == 3628800, "factorial incorrect");
 assert(packed == 0x1234);   // message is optional
 ```
 
+The message is an **expression**, not just a literal, so it can report the value
+that actually failed:
+
+```cryo
+int n = 5;
+assert(n == 4, "n was " + to_string(n));
+// [Cryo Assert] n was 5
+```
+
+Keep the message free of side effects and of anything that could itself fail.
+The backends do not agree on *when* it is evaluated: `pyro` and `go` evaluate it
+on every assert, passing or not, while `node` evaluates it only when the
+assertion fails. So a message that prints, writes, or indexes something only
+valid when the condition holds will behave differently depending on the backend
+(roadmap 12.12). A plain string, or a string built from values you already have,
+is always safe.
+
 ## Always-on safety
 
 Even without `try`, safe mode protects against integer overflow and division by zero. See [Code security](#/seguranca).
