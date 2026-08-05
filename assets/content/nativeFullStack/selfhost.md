@@ -9,6 +9,7 @@ A language is self-hosting when its compiler is written in itself. Cryo's lives 
 |---|---|
 | `lexer.cryo` | tokenizer — produces a token stream byte-identical to `cryo/lexer.py` |
 | `parser.cryo` | recursive-descent parser — its AST is checked against the reference parser's, statement by statement |
+| `semantic.cryo` | the analyser: undeclared names, unknown functions, argument counts, `break` outside a loop |
 | `codegen.cryo` | single-pass generator emitting a valid PYRO v2 binary |
 | `pyroc.cryo` | the CLI entry point: `read_file` + `args` + `write_bytes` |
 
@@ -71,3 +72,24 @@ Three behaviours are **desugarings** rather than shapes, and are reproduced
 rather than parsed literally, because the reference lowers them too: a range
 for-loop becomes a C-style `for`, an interpolated string becomes a
 concatenation, and a lambda's `=> expr` becomes a body of `return expr`.
+
+## Errors, not just successes
+
+A self-hosted compiler is only finished when it agrees with the reference on
+what is an **error**. Until roadmap 13.2 this one had no analyser at all, so it
+emitted bytecode for anything it could parse:
+
+```cryo
+print(x);        // x is undeclared
+```
+
+The reference rejects that. The self-hosted compiler used to compile it, run it,
+and print `0` — and for an unknown function it emitted a call to function index
+65535, which killed the VM outright. A compiler that turns a typo into a silent
+`0` is worse than one that cannot compile the file, because nothing tells you to
+look.
+
+The checks are deliberately the *reference's*, not better ones. The reference
+accepts `int a = "hi"` — there is no type check at a declaration — so the
+self-hosted analyser accepts it too. Agreeing means matching its answers,
+including the lenient ones.
