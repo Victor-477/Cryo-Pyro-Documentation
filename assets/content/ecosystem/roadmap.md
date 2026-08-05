@@ -185,6 +185,21 @@ Phase 11 asked *"can I ship this?"*. Phase 12 asks *"can a team work in it?"*.
 | 12.12 | ✅ **[`assert` made consistent](#/erros)** — the message is evaluated only on failure now, on every backend, and node's three other divergences are gone: it dropped the line number, dropped the `[Cryo Assert] ` prefix, and threw an object, so a *caught* assert printed `{}` |
 | 12.13 | ✅ **[One out-of-bounds message](#/seguranca)** — the VM's wording on every backend. node's was in Portuguese, the C runtime had a third spelling, and go emitted no check at all — it now has real bounds checks, which also turns a constant bad index from a Go *compile* error into the same abort |
 
+## Phase 13 — Proving it, at scale
+
+Phase 12 asked *"can a team work in it?"*. Phase 13 asks *"can the system find its own defects?"*
+
+Every parity break closed in Phase 12 was found by hand, and several only incidentally — 12.12 turned up while *documenting* 12.8, and 12.13 while *testing* 12.12. They share a shape: the program compiled everywhere and then disagreed, which a suite that inspects generated text cannot see.
+
+| Item | Description |
+|---|---|
+| 13.1 | ✅ **Differential testing** — a generator of valid, deterministic Cryo programs, run on every backend with the outputs compared and a failing case **shrunk** to something readable. It found a real defect on its first run: `abs()` was typed as a float on the go backend while the emitter produced the integer helper, so `int b = abs(a) + 1;` did not compile |
+| 13.2 | ⬜ **Self-hosted semantic analysis** — the self-hosted front end has a lexer, parser and code generator but no analyser, so it accepts programs the reference compiler rejects |
+| 13.3 | ⬜ **Generics in the self-hosted parser** — 12.6's remaining gap |
+| 13.4 | ⬜ **Performance, after a negative result** — 11.22 measured threaded dispatch 3% slower and reverted it; what is missing is a profile-led answer to where the VM's time actually goes |
+| 13.5 | ⬜ **Standard library gaps** — text pattern matching, date/time formatting, string building |
+| 13.6 | ⬜ **Parser error recovery** — the parser stops at the first syntax error, while every semantic pass reports all of its problems at once |
+
 ## Principles
 
 1. **Modules first** — no large project fits in one file.
