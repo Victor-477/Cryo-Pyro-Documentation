@@ -46,9 +46,6 @@ Level c = HIGH;          // bare, when nothing else declares that name
 A variable of the same name shadows the member, and a struct field keeps its
 own meaning — `p.RED` reads the field even if an enum also declares `RED`.
 
-> The bare and dotted spellings work on **pyro**, **node** and **c**. On the
-> **go** backend only `Enum_MEMBER` is reliable today (roadmap 12.9).
-
 Members are referenced as `Enum_MEMBER`:
 
 ```cryo
