@@ -38,13 +38,25 @@ assert(n == 4, "n was " + to_string(n));
 // [Cryo Assert] n was 5
 ```
 
-Keep the message free of side effects and of anything that could itself fail.
-The backends do not agree on *when* it is evaluated: `pyro` and `go` evaluate it
-on every assert, passing or not, while `node` evaluates it only when the
-assertion fails. So a message that prints, writes, or indexes something only
-valid when the condition holds will behave differently depending on the backend
-(roadmap 12.12). A plain string, or a string built from values you already have,
-is always safe.
+The message is evaluated **only when the assertion fails**, on every backend.
+An assertion that holds costs nothing beyond the test itself, so a message can
+be as expensive as it needs to be — and one that is only valid when the
+condition holds is safe:
+
+```cryo
+assert(i < len(a), "bad index: " + to_string(a[i]));
+// a[i] is only reached when the assertion has already failed
+```
+
+A failing assert can be caught, and what you catch is the message:
+
+```cryo
+try {
+    assert(total == 100, "total was " + to_string(total));
+} catch (string e) {
+    print(e);        // [Cryo Assert] total was 42
+}
+```
 
 ## Always-on safety
 
