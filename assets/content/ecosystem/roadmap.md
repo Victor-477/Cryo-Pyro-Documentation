@@ -181,7 +181,7 @@ Phase 11 asked *"can I ship this?"*. Phase 12 asks *"can a team work in it?"*.
 | 12.8 | ✅ **A dynamic `assert` message is no longer dropped** — `assert(n == 4, "n was " + to_string(n))` reports *n was 5* on pyro now, as it already did on go and node. The expression had never even been evaluated |
 | 12.10 | ✅ **[`json_encode` key order](#/json)** — keys are ordered by their own text on every backend. It was two defects in opposite directions: node used insertion order for maps, while go and node used declaration order for structs and pyro sorted them |
 | 12.11 | ✅ **[A future can be awaited twice](#/concorrencia)** — it used to deadlock the go binary |
-| 12.9 | ⬜ **A payload-less enum member used as a value** fails on node, go and c — `enum E { A, B } E e = A;` emits a bare `A` where the member is declared `E_A` |
+| 12.9 | 🟡 **[A payload-less enum member as a value](#/structs-enums)** — fixed on node, pyro and c: `E e = A;` and `Status.ATIVO` both work, resolved at compile time, with a variable of the same name still shadowing the member. Open on go, whose enum path is mid-rewrite |
 | 12.12 | ✅ **[`assert` made consistent](#/erros)** — the message is evaluated only on failure now, on every backend, and node's three other divergences are gone: it dropped the line number, dropped the `[Cryo Assert] ` prefix, and threw an object, so a *caught* assert printed `{}` |
 | 12.13 | ✅ **[One out-of-bounds message](#/seguranca)** — the VM's wording on every backend. node's was in Portuguese, the C runtime had a third spelling, and go emitted no check at all — it now has real bounds checks, which also turns a constant bad index from a Go *compile* error into the same abort |
 
