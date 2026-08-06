@@ -65,8 +65,15 @@ like success:
 
 The self-hosted parser covers statements, the full precedence chain, postfix and
 slices, string interpolation, `try`/`catch`/`finally`, `switch`, lambdas, map
-literals, casts, imports, traits and `spawn`/`await`. Generics (`fn f<T>`) are
-the remaining gap.
+literals, casts, imports, traits, `spawn`/`await`, and generics — type
+parameters with bounds (`fn m<T: Ord>`) and explicit type arguments at a call
+site (`id<int>(42)`).
+
+Two of those need a lookahead rather than a leading token, and both have tests
+for exactly that reason: `(x) => …` is a lambda but `(a + b)` is grouping, and
+`id<int>(…)` takes type arguments but `a < b` is a comparison. In each case only
+the token after the matching bracket decides, and the wrong choice still
+parses.
 
 Three behaviours are **desugarings** rather than shapes, and are reproduced
 rather than parsed literally, because the reference lowers them too: a range

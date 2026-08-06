@@ -195,7 +195,7 @@ Every parity break closed in Phase 12 was found by hand, and several only incide
 |---|---|
 | 13.1 | ✅ **Differential testing** — a generator of valid, deterministic Cryo programs, run on every backend with the outputs compared and a failing case **shrunk** to something readable. It found a real defect on its first run: `abs()` was typed as a float on the go backend while the emitter produced the integer helper, so `int b = abs(a) + 1;` did not compile |
 | 13.2 | ✅ **[Self-hosted semantic analysis](#/selfhost)** — the self-hosted compiler refuses invalid programs instead of emitting bytecode for them. It used to print `0` for an undeclared variable and emit a call to function index 65535 for an unknown one, which killed the VM. Building it also turned up two silent defects: no hex literals in the lexer, and no prefix `!` in the code generator |
-| 13.3 | ⬜ **Generics in the self-hosted parser** — 12.6's remaining gap |
+| 13.3 | ✅ **[Generics in the self-hosted parser](#/selfhost)** — type parameters on `fn` and `struct` with bounds, and explicit type arguments at a call site. `a < b` is still a comparison |
 | 13.4 | ⬜ **Performance, after a negative result** — 11.22 measured threaded dispatch 3% slower and reverted it; what is missing is a profile-led answer to where the VM's time actually goes |
 | 13.5 | ⬜ **Standard library gaps** — text pattern matching, date/time formatting, string building |
 | 13.6 | ⬜ **Parser error recovery** — the parser stops at the first syntax error, while every semantic pass reports all of its problems at once |
