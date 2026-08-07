@@ -40,10 +40,34 @@ lead: "The language's built-in functions, grouped by area. Availability depends 
 | `substr(s, start, n)` | slice with safe bounds |
 | `repeat(s, n)` | `s` concatenated `n` times (`n<0` → empty) |
 | `pad_start(s, w, p)` / `pad_end(s, w, p)` | pad to width `w` with `p` (like JS) |
-| `split(s, sep)` | splits into `string[]` |
+| `split(s, sep)` | splits into `string[]`; an empty `sep` splits into characters |
 | `join(arr, sep)` | joins an array into a string |
 
 > On the Pyro VM, all math, conversion and string builtins run via the ISA's [`NATIVE` instruction](#/pyro-isa).
+
+### Lowered in the front end (all six backends)
+
+These add **no native**. Each is rewritten by the parser into an ordinary Cryo
+helper, so every backend gets it at once — including `c`, `asm` and `wasm`,
+which is not true of the natives above. A program that declares its own
+function of the same name keeps it; the rewrite only fires for a name the
+program has not defined.
+
+| Builtin | Description |
+|---|---|
+| `lines(s)` | splits into lines on `\n`, tolerating CRLF. Text ending in a newline does **not** yield a trailing empty line, and `lines("")` is `[]` |
+| `chars(s)` | the characters of `s` as `string[]` |
+| `title_case(s)` | upper-cases the first letter of each whitespace-separated word and lower-cases the rest, like Python's `str.title()` — `"hELLO wORLD"` → `"Hello World"` |
+| `trim_start(s)` / `trim_end(s)` | strips whitespace from one end, over exactly the character set `trim` uses |
+
+> Why lowering rather than natives: a new native has to be added in six places
+> that cannot disagree (the two VMs, the AOT runtime, both code generators'
+> tables and both semantic analysers), and a half-applied id allocation does not
+> fail loudly — it makes the backends silently disagree about what an id means.
+> There is only one implementation of these, and every backend compiles it.
+
+Escapes in a string literal are `\n`, `\t`, `\r`, `\\`, `\"`, `\'` and `\$`
+(a literal `${`). An unrecognised escape yields the character itself.
 
 ## Containers (go / node / pyro backends)
 
