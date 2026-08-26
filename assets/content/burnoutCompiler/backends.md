@@ -1,7 +1,7 @@
 ---
 title: "Backends"
 group: "The Burnout Compiler"
-lead: "Six code generators from the same AST. Each covers a subset of the language."
+lead: "Eight code generators from the same AST. Each covers a subset of the language."
 ---
 ## Coverage matrix
 
@@ -35,6 +35,45 @@ lead: "Six code generators from the same AST. Each covers a subset of the langua
 > Known gaps it currently reports: a payload-less **enum member used as a
 > value** compiles but does not run on node, go and c (roadmap 12.9), and the C
 > backend refuses `match` with payloads, lambdas and JSON.
+
+## `--backend csharp` and `--backend cpp`
+
+Two newer targets, in the matrix above only on a machine that has their
+toolchain. Both are **statically typed hosts with their own standard library**,
+which is what separates them from the C backend: `string`, `List<T>` /
+`std::vector` and `Dictionary` / `std::map` come with the language, so neither
+needs the hand-written value model `cryo_runtime.c` exists for.
+
+| | `csharp` | `cpp` |
+|---|---|---|
+| Output | one self-contained `.cs` | one `.cpp` plus a header-only runtime |
+| Build | `dotnet run` (a project is generated beside the file) | `g++ -std=c++14 -I <burnout>/runtime` |
+| `T?` | `long?` / `string` | `std::shared_ptr<T>` |
+| `T[]`, `map<K,V>` | `List<T>`, `Dictionary<K,V>` | `shared_ptr<vector<T>>`, `shared_ptr<map<K,V>>` |
+| Foreign blocks | `>C#( … )` | `>C++( … )` |
+| `library >Lang X<` | `using X;` | `#include <X>` |
+
+**Why the C++ containers are all `shared_ptr`.** [PYRO_RUNTIME §2](#/pyro-runtime)
+makes arrays, maps and structs reference-counted objects that are *shared* when
+passed. A bare `std::vector` copies on assignment, so `int[] b = a; b.push(1);`
+would leave `a` untouched here and change it on every other backend — a
+divergence nothing would report. C# gets this for free, because `List<T>` and a
+class are already reference types.
+
+**What both refuse**, with a message naming a backend that does support it:
+first-class functions, `spawn`/`await`, data-carrying enums and `match`, `as T`
+casting, `?` propagation, and the LLM/HTTP layer.
+
+> **Verification differs between the two, and that matters when reading the
+> matrix.** The C# backend is compared against the Pyro VM on a corpus covering
+> arithmetic, control flow, functions, strings, collections, maps, structs,
+> enums, optionals, null equality, math and try/catch — byte-identical output on
+> every one, in `test_parity.py`. The C++ backend has **not been compiled**: no
+> working C++ compiler was available where it was written, so what is checked is
+> that it generates, that every `cryo::` call it emits exists in the runtime
+> header, and that delimiters balance. That catches typos and missing runtime
+> functions; it does not catch a type error. Treat `cpp` as unproven until it
+> has run somewhere.
 
 > **`--backend frontend`** is not in this matrix because it does not generate a program: it assembles [html/javascript/CSS blocks](#/frontend) into a **document**. Under `--emit pyro` it delegates the program's logic to the wasm column above.
 

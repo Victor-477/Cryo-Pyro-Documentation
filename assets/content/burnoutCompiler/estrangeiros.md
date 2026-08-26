@@ -35,14 +35,39 @@ import >C<
 >Go(   fmt.Println("[go] here") )    // emitted on the go backend
 >Node( console.log("[node] here") ) // emitted on the node backend
 >C(    printf("[c] here\n");   )    // emitted on the c backend
+>C#(   Console.WriteLine("[c#] here"); )   // emitted on --backend csharp
+>C++(  std::cout << "[c++] here" << std::endl; )  // emitted on --backend cpp
 ```
 
-| Backend | `>Go(...)` | `>Node(...)` | `>C(...)` |
-|---|:---:|:---:|:---:|
-| `go` | emitted | omitted | omitted |
-| `node` | omitted | emitted | omitted |
-| `c` | omitted | omitted | emitted |
-| `asm` / `pyro` | error | error | error |
+| Backend | `>Go(...)` | `>Node(...)` | `>C(...)` | `>C#(...)` | `>C++(...)` |
+|---|:---:|:---:|:---:|:---:|:---:|
+| `go` | emitted | omitted | omitted | omitted | omitted |
+| `node` | omitted | emitted | omitted | omitted | omitted |
+| `c` | omitted | omitted | emitted | omitted | omitted |
+| `csharp` | omitted | omitted | omitted | emitted | omitted |
+| `cpp` | omitted | omitted | omitted | omitted | emitted |
+| `asm` / `pyro` | error | error | error | error | error |
+
+A block's language is matched loosely, so `>C#(`, `>cs(`, `>csharp(` and
+`>dotnet(` name one language, as do `>C++(`, `>cpp(` and `>cxx(`.
+
+### A block can call back into the program
+
+A foreign block is not a sealed box: it is emitted into the generated file
+beside everything else, so it can call the program's own functions.
+
+```cryo
+import >C#<
+
+fn helper() -> int ={ return 7; }
+
+fn native() ={
+  >C#( Console.WriteLine("from C#: " + helper()); )
+}
+```
+
+The same holds for `>C++(`, where the block sees the forward declarations the
+backend emits for every Cryo function.
 
 ## Structure parameters `< ... >`
 
