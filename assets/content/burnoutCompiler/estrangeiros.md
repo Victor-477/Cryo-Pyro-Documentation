@@ -51,6 +51,31 @@ import >C<
 A block's language is matched loosely, so `>C#(`, `>cs(`, `>csharp(` and
 `>dotnet(` name one language, as do `>C++(`, `>cpp(` and `>cxx(`.
 
+### `>html<` and `>CSS<` are content, not a rival language
+
+The table above is about languages that **compete** for a backend. Markup is
+different: it is a string the program returns, so on the node backend a
+`>html( … )` or `>CSS( … )` block inside a function body lowers to a returned
+template literal rather than being omitted.
+
+```cryo
+fn page() -> string ={
+    >html( <h1>Hi</h1> )
+}
+```
+
+```javascript
+// --backend node
+function page() {
+  return `<h1>Hi</h1>`;
+}
+```
+
+A backtick or a `${` in your own markup is escaped on the way out — either one
+would otherwise end the literal and produce a JavaScript syntax error. These
+blocks used to be commented out as omitted here, which silently returned
+nothing on the one backend that can serve a page.
+
 ### A block can call back into the program
 
 A foreign block is not a sealed box: it is emitted into the generated file
