@@ -6,3 +6,8 @@
 # consistência de convenção).
 *.cryo linguist-language=Rust
 *.pyro binary
+
+# The playground's WebAssembly engine. `* text=auto` above would treat these
+# as text and rewrite their line endings, which corrupts a .wasm silently —
+# it still downloads, and then fails to instantiate in the browser.
+*.wasm binary

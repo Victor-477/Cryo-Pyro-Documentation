@@ -167,7 +167,7 @@
         'print(upper(trim(s)));\n' +
         'print(replace(trim(s), "Cryo", "❄"));\n' +
         'print(split("a,b,c", ","));\n' +
-        'print(title_case("hELLO wORLD"));\n' +
+        'print(starts_with(trim(s), "Hello"));\n' +
         '\n' +
         '// An empty needle inserts at every boundary.\n' +
         'print(replace("abc", "", "-"));\n'
@@ -198,7 +198,7 @@
 
     var backend = el("select", "pg-select");
     backend.setAttribute("aria-label", "Backend");
-    [["pyro", "pyro (VM)"], ["node", "node"], ["go", "go"],
+    [["pyro", "pyro (in browser)"], ["node", "node"], ["go", "go"],
      ["c", "c"], ["csharp", "csharp"], ["cpp", "cpp"]].forEach(function (b) {
       var o = el("option", null, b[1]);
       o.value = b[0];
@@ -215,8 +215,12 @@
     var copyBtn = el("button", "pg-ghost", "Copy");
     copyBtn.type = "button";
 
-    var pill = el("span", "pg-pill pg-pill-wait", "checking…");
-    pill.title = "Backend status";
+    var pill = el("span", "pg-pill pg-pill-wait", "checking server…");
+    // Named for what it is. `pyro` runs in the browser and does not care
+    // about this at all; the pill only speaks for the other backends, and
+    // a bare "offline" beside a playground that had just run something
+    // would read as a contradiction.
+    pill.title = "The local server, needed only by the non-pyro backends";
 
     bar.appendChild(picker);
     bar.appendChild(backend);
@@ -329,9 +333,11 @@
 
     function offlineHelp() {
       outBody.textContent =
-        "No backend reachable at " + api() + "\n\n" +
-        "The playground compiles with the real toolchain rather than a\n" +
-        "JavaScript imitation of it, so running needs the local server:\n\n" +
+        "The " + backend.value + " backend needs the local server, and none\n" +
+        "is reachable at " + api() + ".\n\n" +
+        "Switch the backend to `pyro` to run right here in the browser,\n" +
+        "with no server at all. The others are whole toolchains (a Go\n" +
+        "compiler, the .NET SDK, gcc) and need one:\n\n" +
         "    cd cryo-playground\n" +
         "    npm install\n" +
         "    npm start\n\n" +
@@ -349,29 +355,59 @@
     var pinging = null;
 
     function ping() {
-      setPill("wait", "checking…");
+      setPill("wait", "checking server…");
       var done = false;
       var t = setTimeout(function () {
-        if (!done) { done = true; online = false; setPill("off", "offline", "No server at " + api()); }
+        if (!done) { done = true; online = false; setPill("off", "no server", "No server at " + api() + " — `pyro` still runs in the browser"); }
       }, 2500);
       pinging = fetch(api() + "/api/health", { method: "GET" })
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function (j) {
           if (done) return;
           done = true; clearTimeout(t); online = true;
-          setPill("on", "ready", (j && j.engine) ? j.engine : "backend ready");
+          setPill("on", "server ready", (j && j.engine) ? j.engine : "backend ready");
         })
         .catch(function () {
           if (done) return;
           done = true; clearTimeout(t); online = false;
-          setPill("off", "offline", "No server at " + api());
+          setPill("off", "no server", "No server at " + api() + " — `pyro` still runs in the browser");
         })
         // Cleared once settled, so only a Run pressed DURING a check waits
         // on one; every later Run reads `online` directly.
         .then(function () { pinging = null; });
     }
 
+    // `pyro` runs HERE, in WebAssembly, with no server — which is what makes
+    // the playground work on GitHub Pages. The other backends are whole
+    // toolchains (a Go compiler, the .NET SDK, gcc) that cannot be shipped to
+    // a browser, so they still go to the local server.
+    function runInBrowser() {
+      runBtn.disabled = true;
+      outMeta.textContent = window.PyroEngine.ready() ? "running…" : "loading engine…";
+      outBody.textContent = "";
+      outBody.className = "pg-out-body";
+      window.PyroEngine.run(ta.value).then(function (r) {
+        var text = r.out.replace(/\r\n/g, "\n").trim();
+        var aborted = ABORT_MARKER.test(text);
+        outBody.textContent = text || "(no output)";
+        outBody.className = "pg-out-body" + (r.ok && !aborted ? "" : " pg-err");
+        outMeta.textContent =
+          (aborted ? "aborted"
+            : r.ok ? "ok"
+            : (r.stage === "compile" ? "did not compile" : "exit ≠ 0"))
+          + " · " + r.ms + " ms · in browser";
+      }).catch(function (e) {
+        outBody.className = "pg-out-body pg-err";
+        outBody.textContent =
+          "The in-browser engine could not be loaded.\n\n"
+          + (e && e.message ? e.message : e)
+          + "\n\nassets/wasm/pyrovm.js and pyrovm.wasm are built by\n"
+          + "tools/wasm/build.sh and have to be committed beside the site.";
+        outMeta.textContent = "engine unavailable";
+      }).then(function () { runBtn.disabled = false; });
+    }
     function doRun() {
+      if (backend.value === "pyro" && window.PyroEngine) { runInBrowser(); return; }
       if (!online) { offlineHelp(); ping(); return; }
       runBtn.disabled = true;
       outMeta.textContent = "running…";
@@ -403,13 +439,17 @@
         })
         .catch(function (e) {
           online = false;
-          setPill("off", "offline", "No server at " + api());
+          setPill("off", "no server", "No server at " + api() + " — `pyro` still runs in the browser");
           offlineHelp();
         })
         .then(function () { runBtn.disabled = false; });
     }
 
     runBtn.addEventListener("click", function () {
+      // The in-browser engine needs no server, so it never waits on the
+      // health check — that would make the one path that always works feel
+      // as slow as the one that might not.
+      if (backend.value === "pyro" && window.PyroEngine) { runInBrowser(); return; }
       // Still checking? Let the check finish and then run, rather than
       // answering from a state that has not settled.
       if (pinging) {

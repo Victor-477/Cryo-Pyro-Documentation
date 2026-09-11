@@ -1,14 +1,13 @@
 ---
 title: "Playground"
 group: "Ecosystem"
-lead: "An editable Cryo code space in the docs — pick an example, change it, and run it against the real compiler."
+lead: "An editable Cryo code space that compiles and runs in your browser — no install, no server, no account."
 ---
 ## Try it
 
-Edit the program below and press **Run** (or `Ctrl`/`Cmd` + `Enter`). The
-picker swaps in a different example; **Reset** puts back the one this page
-shipped with. Your edits are kept in the browser, so the page remembers where
-you were.
+Edit the program and press **Run** (or `Ctrl`/`Cmd` + `Enter`). The picker swaps
+in another example; **Reset** restores the one this page shipped with. Your
+edits are kept in the browser, so the page remembers where you were.
 
 ```playground
 // Change anything here and press Run.
@@ -25,27 +24,37 @@ fn fib(int n) -> int ={
 print("fib(20) = ${fib(20)}");
 ```
 
-## It runs the real compiler, not an imitation
+## What is actually running
 
-Pressing Run sends the program to a local server that shells out to
-`Burnout/cryoc.py` — the same compiler the command line uses, with the backend
-the dropdown names. What you see here is what you get in a terminal.
+Not a JavaScript imitation of Cryo. The page loads **the Pyro C VM compiled to
+WebAssembly**, carrying the [self-hosted compiler](#/selfhost)'s bytecode inside
+it. Pressing Run is two turns of that one VM:
 
-That is a deliberate choice over the easier one. A JavaScript interpreter
-embedded in this page would be a **fourth engine**, and
-[invariant 1](#/backends) says a program means the same thing on every backend.
-An engine that no parity suite ever runs is the surest way to break that rule
-quietly: it would drift, and the docs would be the last place anyone looked for
-the disagreement.
+1. the VM runs `pyroc.pyro`, which reads your source and writes bytecode;
+2. the VM runs the bytecode that came out.
 
-So the playground either runs the real thing or admits it cannot.
+Which is exactly what `pyrovm pyroc.pyro in.cryo out.pyro` followed by
+`pyrovm out.pyro` does at a command line. Same VM, same compiler — so the
+playground cannot drift from the language the rest of these pages describe.
 
-## Starting the backend
+That mattered more than it sounds. A JavaScript interpreter written for this
+page would have been a **fourth engine**, and [invariant 1](#/backends) says a
+program means the same thing on every backend. An engine no parity suite runs
+is the surest way to break that quietly. Phase 9 built a compiler written in
+Cryo precisely so this was possible without one.
 
-The status pill on the right of the toolbar says whether one is reachable.
-While it reads **offline** you can still edit, switch examples, read the
-highlighted source and copy it — Run will then print the instructions instead
-of pretending.
+> **It found a real bug the day it was built.** `for (i in 0..n)` compiled
+> cleanly under the self-hosted compiler and then iterated *nothing* — the
+> lexer had always produced the range tokens and the code generator never
+> consumed them, so a range reached the loop as an ordinary value. On a
+> terminal that aborts; in the browser it printed nothing at all. Fixed, and
+> the reason this page can show a counted loop at all.
+
+## The other backends
+
+The dropdown also offers `node`, `go`, `c`, `csharp` and `cpp`. Those are whole
+toolchains — a Go compiler, the .NET SDK, gcc — and cannot be shipped to a
+browser, so they need the local server:
 
 ```bash
 cd cryo-playground
@@ -53,40 +62,49 @@ npm install
 npm start
 ```
 
-That serves `http://localhost:3020`, which is where this page looks by default.
-**Double-click the status pill** to point it somewhere else — a container, a
-different port, a machine on your network — and the choice is remembered.
+That serves `http://localhost:3020`, which is where this page looks. The status
+pill reports it; **double-click the pill** to point somewhere else and the
+choice is remembered. `pyro` ignores all of this and keeps running in the
+browser either way.
 
-> The server compiles in a temporary directory and deletes it afterwards, with
-> a timeout on every run. It is a development tool: it executes whatever it is
-> sent, so run it on your own machine rather than exposing it to a network you
-> do not control.
+> The server executes whatever it is sent. It is a development tool for your
+> own machine, not something to expose to a network you do not control.
 
-## Without any server at all
+## Limits worth knowing
 
-Every program here is an ordinary `.cryo` file. Copy it out and run it
-directly — this needs nothing but the repository:
+- **The self-hosted compiler is a subset** of what `Burnout/cryoc.py` accepts.
+  It covers the language these pages teach — types, functions, control flow,
+  arrays, maps, structs, enums with `match`, optionals, `try`/`catch`, string
+  interpolation — but a program the reference compiler takes may still be
+  refused here. When that happens the message says so.
+- **No network, no filesystem, no clock-dependent behaviour.** A browser tab
+  has no subprocesses, so `exec()` reports a failed command rather than
+  pretending; the sandbox rules (11.11) reach the same answer.
+- **Each run starts clean.** Nothing carries over between runs, which is what
+  you want from a playground and also what the VM's exit semantics give.
+
+## Without any of this
+
+Every program here is an ordinary `.cryo` file. Copy it out and run it with
+nothing but the repository:
 
 ```bash
 python Burnout/cryoc.py main.cryo --backend pyro --run
 ```
 
-Swap `pyro` for `go`, `node`, `c`, `csharp` or `cpp` to run the same source on
-a different backend; that is the whole point of the dropdown, and comparing two
-of them by hand is exactly how most of the parity bugs in this project were
-found.
+Swap `pyro` for another backend to run the same source elsewhere — comparing
+two of them by hand is how most of the parity bugs in this project were found.
 
-## What the dropdown's backends need
+## Rebuilding the engine
 
-| Backend | Needs | Notes |
-|---|---|---|
-| `pyro` | nothing (the VM ships built) | the reference engine — start here |
-| `node` | Node.js | |
-| `go` | a Go toolchain | |
-| `c` | a C compiler | a subset of the language; see [Backends](#/backends) |
-| `csharp` | the .NET SDK | |
-| `cpp` | a C++ compiler | |
+`assets/wasm/pyrovm.{js,wasm}` are build artefacts, committed so GitHub Pages
+can serve them with no build step. Regenerate them after changing the VM, the
+runtime or the self-hosted compiler:
 
-A backend that refuses a program says so in its own terms and names one that
-supports it, so an unsupported construct reads as a message rather than as a
-crash.
+```bash
+./tools/wasm/build.sh
+```
+
+It needs [emscripten](https://emscripten.org). On Windows install emsdk at a
+short path such as `C:\emsdk` — unzipping it inside a deep directory hits the
+260-character path limit and fails halfway through.
