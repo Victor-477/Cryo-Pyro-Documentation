@@ -26,7 +26,7 @@
   pages: ["selfhost", "nativo", "wasm", "fullstack", "frontend", "api"]
 - title: "Ecosystem"
   dir: "ecosystem"
-  pages: ["editor", "lsp", "formatador", "pacotes", "roadmap"]
+  pages: ["playground", "editor", "lsp", "formatador", "pacotes", "roadmap"]
 - title: "Reference"
   dir: "reference"
   pages: ["builtins", "palavras-key"]

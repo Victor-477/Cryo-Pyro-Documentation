@@ -439,3 +439,129 @@ kbd {
   .brand-text { display: none; }
   .topbar { gap: 8px; padding: 0 12px; }
 }
+
+/* ============================================================
+   Playground (assets/playground.js)
+
+   The editor is a transparent <textarea> sitting exactly on top
+   of a highlighted <pre>. Both must use the SAME font, size,
+   line-height and padding or the caret drifts away from the
+   glyphs it is supposed to sit between — which is the one bug
+   that makes this technique unusable, and it is always a
+   metrics mismatch rather than anything subtle.
+   ============================================================ */
+.pg {
+  margin: 0 0 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-code);
+}
+
+.pg-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-code) 60%, var(--panel));
+}
+
+.pg-select {
+  font: inherit; font-size: 12px;
+  color: var(--text); background: var(--bg-elev);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 4px 8px; cursor: pointer;
+}
+.pg-select:hover { border-color: var(--border-strong); }
+
+.pg-run {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: 12px; font-weight: 600;
+  color: #06202b; background: var(--accent);
+  border: 1px solid transparent; border-radius: 6px;
+  padding: 4px 12px; cursor: pointer;
+  transition: filter .15s;
+}
+.pg-run:hover { filter: brightness(1.08); }
+.pg-run:disabled { opacity: .55; cursor: progress; }
+
+.pg-ghost {
+  font: inherit; font-size: 12px; color: var(--text-mut);
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px 10px; cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.pg-ghost:hover { color: var(--text); border-color: var(--border-strong); }
+
+.pg-pill {
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: .04em;
+  border-radius: 999px; padding: 3px 10px;
+  border: 1px solid var(--border);
+  cursor: help; user-select: none;
+}
+.pg-pill-on   { color: #34d399; border-color: color-mix(in srgb, #34d399 45%, transparent); }
+.pg-pill-off  { color: var(--text-mut); }
+.pg-pill-wait { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+
+/* ── the editor ── */
+.pg-edit { position: relative; }
+
+.pg-hl, .pg-ta {
+  margin: 0;
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  line-height: 1.7;
+  tab-size: 4;
+  white-space: pre;
+  overflow: auto;
+  border: 0;
+}
+
+.pg-hl {
+  min-height: 260px; max-height: 460px;
+  pointer-events: none;
+}
+.pg-hl code { font-family: inherit; }
+
+.pg-ta {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  resize: vertical;
+  color: transparent;
+  /* The caret is the only visible part of the textarea; the text
+     it sits in is painted by the layer underneath. */
+  caret-color: var(--text);
+  background: transparent;
+  outline: none;
+}
+.pg-ta::selection { background: var(--sel); color: transparent; }
+.pg-ta:focus-visible { box-shadow: inset 0 0 0 2px var(--accent-soft); }
+
+/* ── output ── */
+.pg-out { border-top: 1px solid var(--border); }
+.pg-out-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 16px;
+  background: color-mix(in srgb, var(--bg-code) 60%, var(--panel));
+  border-bottom: 1px solid var(--border);
+}
+.pg-out-title {
+  font-family: var(--font-mono); font-size: 11px;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--text-mut);
+}
+.pg-out-meta { font-family: var(--font-mono); font-size: 11px; color: var(--text-mut); }
+.pg-out-body {
+  margin: 0; padding: 14px 16px;
+  min-height: 54px; max-height: 280px; overflow: auto;
+  font-family: var(--font-mono); font-size: 13px; line-height: 1.65;
+  white-space: pre-wrap; word-break: break-word;
+  color: var(--text-soft);
+}
+.pg-out-body.pg-err { color: #fca5a5; }
+
+@media (max-width: 720px) {
+  .pg-hl { min-height: 200px; }
+  .pg-pill { margin-left: 0; }
+}
