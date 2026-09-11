@@ -53,7 +53,7 @@ npm install
 npm start
 ```
 
-That serves `http://localhost:3000`, which is where this page looks by default.
+That serves `http://localhost:3020`, which is where this page looks by default.
 **Double-click the status pill** to point it somewhere else — a container, a
 different port, a machine on your network — and the choice is remembered.
 

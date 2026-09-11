@@ -30,7 +30,7 @@
 
   var STORE_KEY = "cryo-docs-playground";
   var API_KEY = "cryo-docs-playground-api";
-  var DEFAULT_API = "http://localhost:3000";
+  var DEFAULT_API = "http://localhost:3020";
 
   function api() {
     try { return localStorage.getItem(API_KEY) || DEFAULT_API; }
