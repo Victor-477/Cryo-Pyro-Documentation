@@ -14,7 +14,7 @@ The phrase *"I built a programming language"* covers everything from a syntax-hi
 | Semantic analyzer | Scope, arity, types, exhaustive `match`, control-flow rules | `cryo/semantic.py` |
 | Compile-time passes | Monomorphization for generics, trait lowering, module resolution | `cryo/generics.py`, `traits.py`, `modules.py` |
 | Security audit | Taint analysis (source→sink) and secret detection over the AST | `cryo/security.py` |
-| Six code generators | Pyro bytecode, Go, C, x86-64 assembly, JavaScript, WebAssembly | `burnout/codegen_*.py` |
+| Eight code generators | Pyro bytecode, Go, C, x86-64 assembly, JavaScript, WebAssembly, C#, C++ | `burnout/codegen_*.py` |
 | Bytecode format | An original instruction set and binary container, versioned | `pyro/PYRO_BYTECODE.md` |
 | Bytecode optimizer | Peephole: constant folding, dead code, jump threading | `burnout/codegen_pyro.py` |
 | Virtual machine ×2 | Two independent implementations, Go and C, held to byte-identical output | `pyro/vm/main.go`, `pyro/vm/main.c` |

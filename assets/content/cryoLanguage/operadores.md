@@ -13,6 +13,44 @@ lead: "Arithmetic, comparison, logical, bitwise and compound assignment."
 |---|---|
 | `==` `!=` `<` `>` `<=` `>=` | `&&` `||` `!` |
 
+### What `==` compares
+
+Numbers, `bool` and `string` compare **by value**; an `int` and a `number` are
+promoted before comparing. Arrays and maps compare by **reference identity**:
+
+```cryo
+int[] a = [1];
+int[] b = [1];
+print(a == b);      // false — two different arrays
+print(a == a);      // true
+```
+
+Two arrays with equal contents are not equal. This is deliberate and it is the
+rule on every backend, not a VM detail: passing an array to a function shares
+the same object, so identity is the question `==` can answer consistently.
+
+### What can be `null`
+
+`null` is equal only to `null`. A value of a type that has no null to be — `int`,
+`number`, `bool`, a struct — is therefore never `null`, and a container is not
+`null` either just for being empty:
+
+```cryo
+map<string,int> m = {"a": 1};
+print(m == null);        // false
+int[] e = [];
+print(e == null);        // false, an empty array is still an array
+string s = "";
+print(s == null);        // false, so is an empty string
+int? maybe = null;
+print(maybe == null);    // true — an optional is the type that can be null
+```
+
+The comparison is folded to a constant on the backends whose host language
+would otherwise answer differently: Go rejects `"" == nil` outright, and C folds
+`0 == NULL` to **true**, which was the wrong answer in code that built cleanly.
+See [Optionals](#/opcionais) for the type that does have a null.
+
 ## Bitwise
 
 ```cryo

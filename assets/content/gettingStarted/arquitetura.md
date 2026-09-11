@@ -35,9 +35,9 @@ Pyro_Cryo/
 
 The dependency is direct: **Burnout** consumes the **CRYO** front-end and, for the pyro target, produces code for the **PYRO VM**.
 
-## Six targets, one front-end
+## Eight targets, one front-end
 
-The same AST feeds six code generators. You pick with `--backend`:
+The same AST feeds eight code generators. You pick with `--backend`:
 
 | Backend | Output | For what |
 |---|---|---|
@@ -47,5 +47,7 @@ The same AST feeds six code generators. You pick with `--backend`:
 | `c` | `.c` → binary via gcc | Core + structs/arrays in native C |
 | `asm` | `.s` → binary via gcc | x86-64 (System V and Win64) |
 | `wasm` | `.wasm` → browser | [Numeric subset](#/wasm), runs client-side |
+| `csharp` | `.cs` → `dotnet run` | A statically typed host with its own standard library |
+| `cpp` | `.cpp` → binary via `g++` | Same, with the containers reference-counted by hand |
 
 See [Backends](#/backends) for the full coverage matrix.

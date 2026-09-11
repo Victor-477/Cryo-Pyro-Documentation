@@ -36,7 +36,7 @@ lead: "The language's built-in functions, grouped by area. Availability depends 
 | `contains(s, sub)` | `true` if it contains the substring |
 | `starts_with(s, p)` / `ends_with(s, p)` | prefix / suffix test |
 | `find(s, sub)` | index of the substring (or `-1`) |
-| `replace(s, old, new)` | replaces all occurrences |
+| `replace(s, old, new)` | replaces all occurrences. With an **empty** `old` the replacement goes in at every position boundary, so `replace("abc", "", "-")` is `-a-b-c-` and `replace("", "", "-")` is `-` — the same on every engine |
 | `substr(s, start, n)` | slice with safe bounds |
 | `repeat(s, n)` | `s` concatenated `n` times (`n<0` → empty) |
 | `pad_start(s, w, p)` / `pad_end(s, w, p)` | pad to width `w` with `p` (like JS) |
@@ -45,7 +45,7 @@ lead: "The language's built-in functions, grouped by area. Availability depends 
 
 > On the Pyro VM, all math, conversion and string builtins run via the ISA's [`NATIVE` instruction](#/pyro-isa).
 
-### Lowered in the front end (all six backends)
+### Lowered in the front end (every backend)
 
 These add **no native**. Each is rewritten by the parser into an ordinary Cryo
 helper, so every backend gets it at once — including `c`, `asm` and `wasm`,

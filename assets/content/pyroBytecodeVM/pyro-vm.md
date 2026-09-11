@@ -21,13 +21,35 @@ Values carry their type at runtime (int64, float64, bool, string, null) and oper
 
 - `ADD` with a string operand → **concatenation** (the other is converted).
 - Arithmetic with any `float` → promotion to float; otherwise, integer.
-- `EQ`/`NE` compare by value between compatible types.
+- `EQ`/`NE` compare by value between compatible types — except arrays and maps,
+  which compare by **reference identity**, and `null`, which is equal only to
+  `null` (see [operators](#/operadores)).
 
 ## Security in the VM
 
 - Integer `DIV`/`MOD` by zero **abort** (`[Cryo Security] DivByZero`).
 - `ASSERT` aborts with the message if the condition is false.
 - On abort, the VM prints a **stack trace** (function + line) when debug info is present.
+
+### Resource limits
+
+The interpreter's four stacks are bounded, at the same sizes in every engine.
+The sizes come from the C VM, whose stacks are fixed arrays; the Go VM's grow,
+so it has to stop growing where the C VM runs out or it would accept programs
+the C VM aborts on — the engine that disagrees being the one that appears to
+work.
+
+| Stack | Size | Abort |
+|---|---:|---|
+| operand | 65536 | `value stack overflow` |
+| call | 4096 | `call stack overflow (runaway recursion?)` |
+| locals | 65536 | `locals stack overflow (runaway recursion?)` |
+| handler | 4096 | `exception handler stack overflow` |
+
+Which one a program reaches depends on its frame size: under about 16 locals
+per function the 4096 frames run out first, over it the 65536 local slots do.
+These are engine limits, not language semantics — a program that needs to
+recurse deeper than 4095 was never portable across the two runtimes.
 
 ## Compilation and execution
 

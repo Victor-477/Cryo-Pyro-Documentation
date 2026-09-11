@@ -77,11 +77,11 @@ Bringing Cryo up to the everyday ergonomics of Python/Rust/Kotlin/Swift/TypeScri
 
 | # | Item | Status |
 |---|---|---|
-| 10.1 | **[Range-based for](#/controle-de-fluxo)** — `for (int i in a..b)` / `a..=b`, lowered in the front-end so it runs on all six backends | ✅ done |
+| 10.1 | **[Range-based for](#/controle-de-fluxo)** — `for (int i in a..b)` / `a..=b`, lowered in the front-end so it runs on every backend | ✅ done |
 | 10.2 | **[Collection operations](#/builtins)** — `sort`/`reverse`/`slice`/`index_of`/`concat`/`count`/`sum`, all non-mutating, plus the function-taking `map`/`filter`/`reduce`/`find_first`/`any`/`all` once 10.6 landed. Go VM == C VM | ✅ done |
 | 10.3 | **Iterators, `enumerate`, `pairs` & comprehensions** — `for (i, v) in enumerate(xs)`, `[f(x) for x in xs if c]` and map comprehensions, desugared to plain loops so every backend gets them | ✅ done |
 | 10.4 | **[Extended standard library](#/builtins)** — `clamp`/`sign`/`gcd`/`hypot`, `starts_with`/`ends_with`/`repeat`, `pad_start`/`pad_end`, `concat`/`count`/`sum`, plus `now_ms`/`monotonic_ms`/`random`/`random_int`/`seed`. Natives with go/node/pyro parity (Go VM == C VM) | ✅ done |
-| 10.5 | **Generics** — `fn max_of<T>(T a, T b)`, `struct Pair<A,B>`, resolved by compile-time **monomorphization** (`T` → `int`, mangled to `max_of__int`). Concrete declarations are generated before analysis, so all six backends gain generics with no backend change | ✅ done |
+| 10.5 | **Generics** — `fn max_of<T>(T a, T b)`, `struct Pair<A,B>`, resolved by compile-time **monomorphization** (`T` → `int`, mangled to `max_of__int`). Concrete declarations are generated before analysis, so every backend gains generics with no backend change | ✅ done |
 | 10.6 | **[Function values & closures on the Pyro VM](#/lambdas)** — done: `PUSHFN`/`CALL_VALUE`/`CLOSURE` opcodes, a `kFunc`/`VAL_FUNC` value kind in both VMs, and a C function-pointer table in the AOT. Functions are passed, stored, returned and **captured**; capture is by value, so a captured variable must be effectively final (which is what keeps pyro identical to go/node) | ✅ |
 | 10.7 | **Interfaces / traits** — `trait Printable { ... }` + `impl Printable for Person`, lowered at compile time to mangled functions (`Person__to_str(Person this)`) with **static dispatch**. Includes generic bounds `<T: Printable>`. Zero VM or backend changes | ✅ done |
 | 10.8 | **[Module namespaces & visibility](#/modulos)** — `import "geo.cryo" as geo;` with `geo::area(...)`, and `pub` to mark the exported surface — large projects without name clashes | ✅ done |
@@ -157,7 +157,7 @@ Today the sandbox is one on/off switch per native: the right shape for a demo, t
 
 | Item | Description |
 |---|---|
-| 11.26 | `replace(s, "", rep)` returns three different answers across the Go VM, the C VM and node — a live parity violation needing a semantics decision first |
+| 11.26 | ✅ **[`replace` with an empty needle](#/builtins)** — the VM's answer is canonical: the replacement goes in at every position boundary, so `replace("abc", "", "-")` is `-a-b-c-` on every engine. node's old answer differed from *both* VMs, so the tests assert the expected string rather than mere agreement — copying the fix from the wrong engine would have made every backend agree on the wrong output |
 | 11.27 | C backend gaps: maps, optionals, printing an array |
 | 11.28 | The self-hosted compiler trails the Python front end on the newest syntax |
 
@@ -196,9 +196,9 @@ Every parity break closed in Phase 12 was found by hand, and several only incide
 | 13.1 | ✅ **Differential testing** — a generator of valid, deterministic Cryo programs, run on every backend with the outputs compared and a failing case **shrunk** to something readable. It found a real defect on its first run: `abs()` was typed as a float on the go backend while the emitter produced the integer helper, so `int b = abs(a) + 1;` did not compile |
 | 13.2 | ✅ **[Self-hosted semantic analysis](#/selfhost)** — the self-hosted compiler refuses invalid programs instead of emitting bytecode for them. It used to print `0` for an undeclared variable and emit a call to function index 65535 for an unknown one, which killed the VM. Building it also turned up two silent defects: no hex literals in the lexer, and no prefix `!` in the code generator |
 | 13.3 | ✅ **[Generics in the self-hosted parser](#/selfhost)** — type parameters on `fn` and `struct` with bounds, and explicit type arguments at a call site. `a < b` is still a comparison |
-| 13.4 | ⬜ **Performance, after a negative result** — 11.22 measured threaded dispatch 3% slower and reverted it; what is missing is a profile-led answer to where the VM's time actually goes |
-| 13.5 | ⬜ **Standard library gaps** — text pattern matching, date/time formatting, string building |
-| 13.6 | ⬜ **Parser error recovery** — the parser stops at the first syntax error, while every semantic pass reports all of its problems at once |
+| 13.4 | ✅ **Performance, after a negative result** — the VM can now profile **itself** (`--cpuprofile`, which samples the interpreter, not the Cryo program). On the densest benchmark it reported `pop` 14% and `push` 7% against `binOp` 7%: a fifth of the runtime was operand-stack traffic, which is why 11.22's threading — an attack on instruction *selection* — measured 3% slower. The stack is now a pre-sized slice indexed by an integer `sp` instead of a `[]Value` grown with `append` behind two closures, and it is **11% faster**, against a measured ±1% A/A noise floor and with the sign following the change when the binaries are swapped |
+| 13.5 | 🟡 **[Standard library gaps](#/builtins)** — `lines`, `chars`, `title_case`, `trim_start` and `trim_end` shipped as **front-end lowerings**, so they cost no new `NATIVE` id and reached every backend at once. That is the rule the item established: a native has to be added in six places that cannot disagree, a lowering in one. Still open, because the language cannot express them over its own primitives: text pattern matching and date/time formatting |
+| 13.6 | ✅ **[Parser error recovery](#/semantica)** — the parser recovers at statement boundaries and reports every syntax error together, in the same rendered form the semantic pass uses. The hard half is not collecting them but not **inventing** them: recovery that resumes in the wrong place turns one real mistake into a cascade, and a list where nine of ten are noise is worse than one true problem |
 
 ## Principles
 
