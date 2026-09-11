@@ -53,7 +53,7 @@ needs the hand-written value model `cryo_runtime.c` exists for.
 | Foreign blocks | `>C#( … )` | `>C++( … )` |
 | `library >Lang X<` | `using X;` | `#include <X>` |
 
-**Why the C++ containers are all `shared_ptr`.** [PYRO_RUNTIME §2](#/pyro-runtime)
+**Why the C++ containers are all `shared_ptr`.** [The Pyro runtime](#/pyro-vm)
 makes arrays, maps and structs reference-counted objects that are *shared* when
 passed. A bare `std::vector` copies on assignment, so `int[] b = a; b.push(1);`
 would leave `a` untouched here and change it on every other backend — a
@@ -64,16 +64,36 @@ class are already reference types.
 first-class functions, `spawn`/`await`, data-carrying enums and `match`, `as T`
 casting, `?` propagation, and the LLM/HTTP layer.
 
-> **Verification differs between the two, and that matters when reading the
-> matrix.** The C# backend is compared against the Pyro VM on a corpus covering
-> arithmetic, control flow, functions, strings, collections, maps, structs,
-> enums, optionals, null equality, math and try/catch — byte-identical output on
-> every one, in `test_parity.py`. The C++ backend has **not been compiled**: no
-> working C++ compiler was available where it was written, so what is checked is
-> that it generates, that every `cryo::` call it emits exists in the runtime
-> header, and that delimiters balance. That catches typos and missing runtime
-> functions; it does not catch a type error. Treat `cpp` as unproven until it
-> has run somewhere.
+> **Both are verified by running them**, not by generating them. Each is
+> compared against the Pyro VM on a corpus covering arithmetic, control flow,
+> functions, strings, collections, maps, structs, enums, optionals, null
+> equality, math and try/catch — byte-identical output on every one, and
+> `test_parity.py` runs both as live backends wherever their toolchain exists.
+>
+> Compiling the C++ output for the first time found two bugs that generation
+> checks could not: the per-struct `str()` was emitted inside `namespace cryo`,
+> where the runtime's template cannot find it by ADL, so every `print(aStruct)`
+> failed to build; and `string == null` emitted `s == nullptr`, which does not
+> compile, because a `std::string` cannot be null. Neither is visible without a
+> compiler, which is the argument for having one in the loop.
+
+### If `--backend cpp` says the compiler is missing
+
+On Windows a C++ toolchain is usually installed but not on `PATH`, so the
+backend looks in the standard locations (`C:\MinGW\bin`, the msys2 prefixes,
+`C:\Program Files\LLVM\bin`) before giving up.
+
+That search also puts the toolchain's `bin/` on the child process's `PATH`,
+which matters more than it sounds: gcc's real front end (`cc1plus`) lives in
+`libexec/` and loads its DLLs from `bin/`. Without `bin/` on `PATH` it exits
+127 having printed **nothing**, so `g++ --version` works while every actual
+compile fails silently — a broken-looking toolchain that is really a missing
+directory.
+
+Binaries are linked `-static-libgcc -static-libstdc++`, so the result runs on a
+machine without the compiler. A dynamically linked MinGW build produces no
+output at all when `libstdc++-6.dll` is not found, which looks like a program
+that printed nothing rather than one that never started.
 
 > **`--backend frontend`** is not in this matrix because it does not generate a program: it assembles [html/javascript/CSS blocks](#/frontend) into a **document**. Under `--emit pyro` it delegates the program's logic to the wasm column above.
 
