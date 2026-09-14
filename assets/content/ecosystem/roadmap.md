@@ -174,6 +174,10 @@ Phase 11 asked *"can I ship this?"*. Phase 12 asks *"can a team work in it?"*.
 | 12.11 | ✅ **[A future can be awaited twice](#/concorrencia)** — avoids deadlock on Go backend |
 | 12.12 | ✅ **[`assert` made consistent](#/erros)** — lazy evaluation and consistent error reporting |
 | 12.13 | ✅ **[One out-of-bounds message](#/seguranca)** — unified canonical message across all engines |
+| 12.14 | ✅ **C++ Pyro VM engine** — standalone `build/pyrovm_cpp.exe` executing `.pyro` bytecode with identical output |
+| 12.15 | ✅ **C# Pyro VM engine** — standalone `build/pyrovm_cs.exe` (.NET 8.0) stack machine with complete native library parity |
+| 12.16 | ✅ **Multi-target testrunner** — `cryoc test` execution support for `--backend cpp` and `--backend csharp` |
+| 12.17 | ✅ **C# language embedding resources** — `Burnout/embed/csharp/` library and runnable host integration example |
 
 ## Phase 13 — Proving it, at scale — ✅ done
 
