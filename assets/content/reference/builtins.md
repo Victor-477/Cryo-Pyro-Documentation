@@ -59,6 +59,17 @@ program has not defined.
 | `chars(s)` | the characters of `s` as `string[]` |
 | `title_case(s)` | upper-cases the first letter of each whitespace-separated word and lower-cases the rest, like Python's `str.title()` — `"hELLO wORLD"` → `"Hello World"` |
 | `trim_start(s)` / `trim_end(s)` | strips whitespace from one end, over exactly the character set `trim` uses |
+| `is_digit(s)` / `is_alpha(s)` / `is_alnum(s)` / `is_space(s)` | true when **every** character qualifies, like Python's `str.isdigit()` — so `is_digit("123")` is true. **Empty is false** for all four: "every character qualifies" is vacuously true of `""`, and true is not the answer a validator wants. `is_space` uses exactly the characters `trim` strips, so the two cannot disagree |
+| `is_blank(s)` | true when `s` is empty **or** nothing but whitespace. Note the deliberate asymmetry with the four above: they are false on `""`, this is true. They ask different questions — "does every character qualify" versus "is there nothing of substance here", where `""` is the purest yes. Built on `trim`, so it cannot disagree with `is_space` |
+| `reverse_str(s)` | `s` back to front |
+| `capitalize(s)` | upper-cases the first character and **lower-cases the rest**, like Python's `str.capitalize()` — `"mcDONALD"` → `"Mcdonald"`. Leaving the tail alone is a different function, not a better default: `title_case` already lower-cases the non-initial characters of each word |
+| `equals_ignore_case(a, b)` | `lower(a) == lower(b)`. Defined over `lower` rather than a character walk, so whatever `lower` does to a character is what this agrees with |
+| `replace_first(s, old, new)` / `replace_last(s, old, new)` | replaces one occurrence, the first or the last. An **empty `old` returns `s` unchanged** rather than splicing at every position, and so does a miss |
+| `strip_prefix(s, p)` / `strip_suffix(s, p)` | removes `p` from that end if it is there. Returns `s` unchanged on a miss and on an empty `p` — same rule as `replace_first`. A caller who needs to know whether it matched has `starts_with` / `ends_with` |
+| `count_of(s, sub)` | how many times `sub` occurs, **non-overlapping** — `count_of("aaaa", "aa")` is `2`, not `3` |
+| `last_index_of(s, sub)` | index of the last occurrence, or `-1`. The mirror of `find` |
+| `word_count(s)` | how many **runs** of non-whitespace there are, so repeated separators do not invent empty words the way `len(split(s, " "))` does. Same whitespace set as `trim` |
+| `common_prefix(a, b)` | the longest shared leading text, character-wise. Not path-aware: that would have to pick a separator, which is a decision this does not need to make |
 
 > Why lowering rather than natives: a new native has to be added in six places
 > that cannot disagree (the two VMs, the AOT runtime, both code generators'
