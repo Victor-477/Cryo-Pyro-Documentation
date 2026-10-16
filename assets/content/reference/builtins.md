@@ -70,6 +70,10 @@ program has not defined.
 | `last_index_of(s, sub)` | index of the last occurrence, or `-1`. The mirror of `find` |
 | `word_count(s)` | how many **runs** of non-whitespace there are, so repeated separators do not invent empty words the way `len(split(s, " "))` does. Same whitespace set as `trim` |
 | `common_prefix(a, b)` | the longest shared leading text, character-wise. Not path-aware: that would have to pick a separator, which is a decision this does not need to make |
+| `parse_int(s)` → `int?` / `parse_number(s)` → `number?` | the value, or **null** when `s` is not one. Use these on anything a person or a file supplied: `to_int`/`to_number` **abort the process** on bad input, and the abort is **not catchable** — `try { to_int(s) } catch (string e)` does not run. `parse_int(s) ?? 0` is the whole idiom. `parse_int` also returns null for a number too large for `int`, which `to_int` likewise aborts on. `parse_number` is narrower than `to_number` on purpose: a sign, digits and at most one dot — no `1e3`, `NaN` or `Inf` |
+| `checked_add(a, b)` / `checked_sub(a, b)` / `checked_mul(a, b)` → `int?` | the result, or **null** if it would not fit in an `int`. Plain `a + b` does **not** agree across backends today — the compiled ones abort with `[Cryo Security] Overflow: integer addition` and the VM wraps round to a negative number — so reach for these wherever a quantity or a total could run away. Every bound inside them is arranged so the check itself cannot overflow |
+
+> **On input you did not write yourself, prefer `parse_int`/`parse_number` over `to_int`/`to_number`, and `checked_*` over bare arithmetic.** The difference is not style: the first of each pair returns a value you can test, and the second ends the process or silently wraps. A server that parses a form field with `to_int` can be stopped by one bad field.
 
 > Why lowering rather than natives: a new native has to be added in six places
 > that cannot disagree (the two VMs, the AOT runtime, both code generators'
