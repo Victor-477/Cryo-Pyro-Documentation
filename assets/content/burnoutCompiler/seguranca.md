@@ -7,7 +7,17 @@ lead: "Safe mode (default) instruments the generated code; the static audit (`--
 
 On by default; turn off with `--unsafe`. It applies, where relevant, to the three native backends:
 
-- **Integer overflow** — `+ - *` go through helpers that abort on overflow (`cryoAddOvf`/`cryoSubOvf`/`cryoMulOvf` on Go; `cryo_add_ovf`/… via `__builtin_*_overflow` on C).
+- **Integer overflow** — `+ - *` go through helpers that abort on overflow (`cryoAddOvf`/`cryoSubOvf`/`cryoMulOvf` on Go; `cryo_add_ovf`/… via `__builtin_*_overflow` on C). The **Pyro VM** checks the same three operations on every engine — Go, C, C++, C# and the AOT binary — and aborts with the same message:
+
+  ```
+  [Cryo Security] Overflow: integer addition
+  [Cryo Security] Overflow: integer subtraction
+  [Cryo Security] Overflow: integer multiplication
+  ```
+
+  An overflow is fail-fast: it cannot be caught with `try`/`catch`. When a
+  program needs to recover from one, use `checked_add` / `checked_sub` /
+  `checked_mul` (see [Builtins](#/builtins)), which return instead of aborting.
 - **Division/modulo by zero** — `/` and `%` are always protected (`cryoIDivChk`/`cryoIModChk` on Go, runtime on C, and on the Pyro VM). **Division** `INT64_MIN / -1` aborts on all these backends (non-representable result); **modulo** `INT64_MIN % -1` returns `0` (well-defined).
 - **`assert(cond)` / `assert(cond, "msg")`** — aborts if the condition fails. The message is an expression, evaluated **only when the assertion fails**, so it can be as expensive as it needs to be.
 - **Array and string bounds-checking** — on every executable backend, with the same message:
@@ -39,6 +49,10 @@ unsafe {
     fast = sum * 2;   // no overflow check here
 }
 ```
+
+> On the **Pyro VM** an `unsafe` block does not remove the overflow check: the
+> bytecode has a single `ADD`/`SUB`/`MUL` per operation, and the VM always
+> checks it. `unsafe` changes generated code only on the go and c backends.
 
 ## Static audit (--audit)
 
