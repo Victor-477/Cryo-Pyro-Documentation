@@ -33,7 +33,7 @@ python burnout/cryoc.py <file.cryo> [options]
 | `-v, --verbose` | Detailed output |
 | `--no-banner` | Hides the banner |
 
-> Sub-commands: `python burnout/cryoc.py fmt <files> [--write] [--check]` (see [Formatter](#/formatador)) and `python burnout/cryoc.py --lsp` (see [Language Server](#/lsp)).
+> Sub-commands: `python burnout/cryoc.py fmt <files> [--write] [--check]` (see [Formatter](#/formatador)), `python burnout/cryoc.py test <files or dirs>` (see [Testing](#/testes)), `python burnout/cryoc.py pkg init|list|lock|check` (see [Packages](#/pacotes)) and `python burnout/cryoc.py --lsp` (see [Language Server](#/lsp)).
 
 ## Examples
 

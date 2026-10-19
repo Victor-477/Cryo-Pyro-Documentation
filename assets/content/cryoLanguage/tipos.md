@@ -15,7 +15,7 @@ lead: "Cryo's primitive, composite and optional types."
 
 ## Numeric literals
 
-The lexer accepts base prefixes and `_` thousands separators:
+The lexer accepts base prefixes, `_` thousands separators and a decimal exponent:
 
 ```cryo
 int hex   = 0xFF;        // hexadecimal  -> 255
@@ -23,7 +23,13 @@ int bin   = 0b1010;      // binary       -> 10
 int oct   = 0o17;        // octal        -> 15
 int grand = 1_000_000;   // underscore as separator
 number f  = 3.14;
+number big   = 6.022e23;  // exponent       -> number
+number small = 1.5e-3;    // signed exponent -> 0.0015
+number kilo  = 1E3;       // `E` works too; an exponent always makes a number
 ```
+
+An exponent is read only when a digit follows the `e` (after an optional `+` or
+`-`), so `2e` is still the integer `2` followed by the identifier `e`.
 
 ## Composites
 
