@@ -67,6 +67,12 @@ pill reports it; **double-click the pill** to point somewhere else and the
 choice is remembered. `pyro` ignores all of this and keeps running in the
 browser either way.
 
+The playground application in `cryo-playground/` also includes a comprehensive API test suite:
+```bash
+node cryo-playground/test_playground.js
+```
+Validating `/api/health`, `/api/examples`, `/api/compile`, `/api/run` across both the Pyro VM and the Go backend.
+
 > The server executes whatever it is sent. It is a development tool for your
 > own machine, not something to expose to a network you do not control.
 

@@ -50,3 +50,26 @@ code --install-extension cryo-lang-v2-0.9.0.vsix
 ```
 
 > The **Burnout Compiler** extension locates the compiler automatically: it looks for `burnout/cryoc.py` in the workspace and, if not found, uses `python -m burnout` (the [installed package](#/biblioteca)).
+
+---
+
+## Visual Studio 2019 & 2022 (`cryo-vs`)
+
+In addition to VS Code, Cryo provides an official extension for Microsoft Visual Studio 2019 (v16.0+) and Visual Studio 2022 (v17.0+), located in `cryo-vs/`:
+
+- **TextMate Grammar Integration**: Native syntax coloring for `.cryo` source files across dark and light Visual Studio themes.
+- **Language Constructs Covered**: Keywords (`fn`, `struct`, `enum`, `trait`, `impl`, `match`, `pub`), Algebraic Data Types, string interpolation `${expr}`, foreign blocks (`>C(...)`, `>Go(...)`), and 80+ standard library functions.
+- **VSIX Packaging**: Ready-to-install `cryo-vs-1.1.0.vsix` targeting `amd64` and `arm64` Visual Studio 2019 & 2022 editions.
+
+### Installing in Visual Studio
+- **GUI**: Double-click `cryo-vs/cryo-vs-1.1.0.vsix` and follow the VSIX Installer prompts.
+- **CLI**:
+  ```cmd
+  VSIXInstaller.exe /q cryo-vs-1.1.0.vsix
+  ```
+
+To rebuild the VSIX package from source:
+```bash
+python cryo-vs/build_vsix.py
+```
+

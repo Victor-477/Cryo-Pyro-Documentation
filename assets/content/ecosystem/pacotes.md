@@ -113,3 +113,39 @@ python burnout/cryoc.py pkg check
 
 A version pin reports that build as unchanged. `pkg check` is the command meant
 for CI: it exits 1 on drift and names the dependency that moved.
+
+---
+
+## Toolchain Distribution Packages
+
+To use Cryo, Burnout, and Pyro across Node.js and Python ecosystems, pre-built packages are distributed:
+
+### NPM (`cryo-lang`)
+Provides the `cryo` CLI and programmatic bindings for Node.js projects:
+```bash
+npm install -g cryo-lang
+cryo run main.cryo
+```
+
+Programmatic Node.js API:
+```javascript
+const { compile, run } = require("cryo-lang");
+
+const bytecode = compile("print(42);", { backend: "pyro" });
+const result = run(bytecode);
+console.log(result.stdout); // 42
+```
+
+### Python Package (`cryo-lang` on PyPI)
+Provides `cryo`, `cryoc` (Burnout), and `pyro` CLI commands directly on PATH:
+```bash
+pip install cryo-lang
+cryoc app.cryo --backend pyro --run
+```
+Or import Cryo tools directly in Python:
+```python
+import cryo
+import burnout
+import pyro
+```
+
