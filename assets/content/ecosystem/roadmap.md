@@ -192,6 +192,7 @@ Phase 12 asked *"can a team work in it?"*. Phase 13 asks *"can the system find i
 | 13.5 | 🟡 **[Standard library gaps](#/builtins)** — `lines`, `chars`, `title_case`, `trim_start`, `trim_end` front-end lowerings |
 | 13.6 | ✅ **[Parser error recovery](#/semantica)** — statement boundary error recovery without cascading noise |
 | L-07 | ✅ **[Struct field assignment](#/structs-enums)** — `obj.field = expr`, compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`), `++`/`--`, chained/indexed targets (`a.b.c = x`, `arr[i].field = x`), `this.field = x` in `impl`, and reference semantics across all backends (`pyro`, `go`, `node`, `c`, `cpp`, `csharp`, and self-hosted) |
+| L-05 / L-08 / #29–#34 | ✅ **Backend & VM Engine Parity** — fail-fast integer overflow across all 4 Pyro VMs (Go, C, C++, C#), `-0.0` formatting parity, `PYROBND1` bundle support across all VMs, UTF-8 `upper`/`lower` and `list_dir` in C/C++ runtimes, `\b`/`\f`/`\uXXXX` JSON escapes, and stdout flushing |
 
 ## Phase 14 — Contact with someone else — in progress
 
