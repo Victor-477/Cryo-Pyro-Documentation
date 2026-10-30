@@ -16,16 +16,47 @@ struct Sensor {
 }
 ```
 
-Build with `new` and access fields with `.`:
+Build with `new` (or directly with `StructName { ... }`) and read or mutate fields with `.`:
 
 ```cryo
-Sensor s1 = new Sensor {
+Sensor s1 = Sensor {
     id:    1,
     name:  "Temperature",
     value: 36.6,
     active: true
 };
 string name = s1.name;   // "Temperature"
+
+// Field assignment (L-07), compound operators, and ++ / --
+s1.value = 40.0;
+s1.value += 1.5;
+s1.id++;
+print(s1.value);         // 41.5
+```
+
+Nested structs (`a.b.c = x`), struct arrays (`arr[i].value = x`), and `this.field = x` inside `impl` methods all mutate fields in place:
+
+```cryo
+impl Sensor {
+    fn calibrate(number target) -> void ={
+        this.value = target;
+    }
+}
+```
+
+### Reference semantics on function calls
+
+Structs have **reference semantics** across every backend (`pyro`, `go`, `node`, `c`, `cpp`, `csharp`). Passing a struct to a function passes a handle to the same instance, so field mutations inside the callee are visible to the caller:
+
+```cryo
+fn resetSensor(Sensor s) -> void ={
+    s.value = 0.0;
+    s.active = false;
+}
+
+resetSensor(s1);
+print(s1.value);         // 0
+print(s1.active);        // false
 ```
 
 > Structs can be **serialized to JSON** with `json_encode` and rebuilt with `json_decode ... as T`. See [Native JSON](#/json).
