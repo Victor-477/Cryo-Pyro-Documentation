@@ -253,7 +253,17 @@
     out.appendChild(outHead);
     out.appendChild(outBody);
 
+    // A notice, not a tooltip. Picking `go` from the list looks exactly like
+    // picking `pyro`, and the two do different things: one RUNS your program,
+    // the other SHOWS IT TRANSLATED. Leaving that to be discovered by pressing
+    // Run would make the page look broken for every language but one — a
+    // reader on this site cannot install a Go compiler, the .NET SDK or gcc
+    // into their browser tab, and no amount of waiting will change that.
+    var note = el("div", "pg-note");
+    note.hidden = true;
+
     root.appendChild(bar);
+    root.appendChild(note);
     root.appendChild(wrap);
     root.appendChild(out);
     block.parentNode.replaceChild(root, block);
@@ -325,26 +335,80 @@
     // ── backend ──
     var online = false;
 
+    // What each non-pyro language would need on the machine running it. Named
+    // specifically rather than as "a toolchain": "needs the .NET SDK" tells a
+    // reader why a web page cannot do it, where "unsupported" only tells them
+    // to be disappointed.
+    // The file extension each backend writes, so the command the page offers
+    // is the one that actually works when it is pasted.
+    var EXT = {
+      node: ".js", go: ".go", c: ".c", csharp: ".cs", cpp: ".cpp"
+    };
+
+    var NEEDS = {
+      node: "Node.js",
+      go: "a Go compiler",
+      c: "a C compiler (gcc/clang)",
+      csharp: "the .NET SDK",
+      cpp: "a C++ compiler (g++/clang++)"
+    };
+
+    // `pyro` is the only language this page can EXECUTE: the Pyro C VM is
+    // compiled to WebAssembly and shipped with the site. Everything else is
+    // shown as a translation of your program into that language.
+    function isRunnable() {
+      return backend.value === "pyro";
+    }
+
+    function syncMode() {
+      var b = backend.value;
+      runBtn.querySelector("span").textContent = isRunnable() ? "Run" : "Convert";
+      if (isRunnable()) {
+        note.hidden = true;
+        note.textContent = "";
+        outTitle.textContent = "Output";
+        return;
+      }
+      note.hidden = false;
+      outTitle.textContent = b + " source";
+      note.innerHTML =
+        '<strong>' + b + ' is shown, not run.</strong> Running it needs '
+        + (NEEDS[b] || "its own toolchain")
+        + ' on the machine, and a web page cannot install one — so for '
+        + '<code>' + b + '</code> the playground shows <strong>the conversion'
+        + '</strong>: the ' + b + ' source your Cryo compiles to. '
+        + 'Switch back to <code>pyro</code> to run the program here in the '
+        + 'browser.';
+    }
+
     function setPill(state, text, title) {
       pill.className = "pg-pill pg-pill-" + state;
       pill.textContent = text;
       if (title) pill.title = title;
     }
 
+    // The conversion is produced by the code generators in Burnout, which are
+    // Python and are not in your browser — so it needs the local server, for
+    // the same reason running does. Saying that outright is the point: the
+    // alternative is a Convert button that fails and does not explain itself.
     function offlineHelp() {
+      var b = backend.value;
+      outBody.className = "pg-out-body pg-err";
       outBody.textContent =
-        "The " + backend.value + " backend needs the local server, and none\n" +
-        "is reachable at " + api() + ".\n\n" +
-        "Switch the backend to `pyro` to run right here in the browser,\n" +
-        "with no server at all. The others are whole toolchains (a Go\n" +
-        "compiler, the .NET SDK, gcc) and need one:\n\n" +
+        "Converting to " + b + " needs the local server, and none is\n" +
+        "reachable at " + api() + ".\n\n" +
+        "The " + b + " code generator lives in Burnout (Python), not in this\n" +
+        "page — the only engine shipped with the site is the Pyro VM, which\n" +
+        "is why `pyro` runs here and nothing else does.\n\n" +
+        "Two ways on from here. Press Copy, then either\n\n" +
+        "    python Burnout/cryoc.py main.cryo --backend " + b + " -o out"
+            + (EXT[b] || "") + "\n\n" +
+        "to get the " + b + " source, or add --run to compile and run it. Or\n" +
+        "start the server and this page converts (and runs) for you:\n\n" +
         "    cd cryo-playground\n" +
         "    npm install\n" +
-        "    npm start\n\n" +
-        "Then reload this page. You can keep editing meanwhile — Copy\n" +
-        "takes the program, and this runs it without a server at all:\n\n" +
-        "    python Burnout/cryoc.py main.cryo --backend " + backend.value + " --run\n";
-      outMeta.textContent = "not run";
+        "    npm start\n";
+      outMeta.textContent = "not converted";
     }
 
     // The in-flight health check, so a Run pressed during it waits for the
@@ -406,8 +470,66 @@
         outMeta.textContent = "engine unavailable";
       }).then(function () { runBtn.disabled = false; });
     }
+    // Show the program translated into the selected language. The server's
+    // /api/compile returns the generated source in `code`; nothing is
+    // executed, which is what the notice above the editor promises.
+    function doConvert() {
+      if (!online) { offlineHelp(); ping(); return; }
+      var b = backend.value;
+      runBtn.disabled = true;
+      // Named length, because this is slow: the server shells out to the
+      // Python toolchain, and a silent "converting…" for fifteen seconds
+      // reads as a hang.
+      outMeta.textContent = "converting… (a few seconds)";
+      outBody.textContent = "";
+      outBody.className = "pg-out-body";
+      fetch(api() + "/api/compile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source: ta.value, backend: b })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var code = (j && j.code) || "";
+          // A refusal is the useful answer here, not an empty pane: a backend
+          // that does not cover some construct says so, and that message is
+          // what the reader needs to see.
+          if (!j || !j.success || !code.trim()) {
+            var why = ((j && j.stderr) || "") + "\n" + ((j && j.stdout) || "");
+            why = why.replace(/\r\n/g, "\n").trim();
+            outBody.className = "pg-out-body pg-err";
+            // With no diagnostic at all, the compiler did not refuse
+            // anything — the server gave up on it. Its /api/compile spawns
+            // several Python processes with an 8 s cap each, and the first
+            // request after a cold start can exceed that. Reporting it as
+            // "the backend produced nothing for this program" blames the
+            // program for the server's clock, which is the wrong place to
+            // send someone looking.
+            outBody.textContent = why ||
+              ("The server returned no " + b + " source and no error.\n\n"
+               + "That is usually its own timeout rather than anything about\n"
+               + "this program — the first conversion after starting the\n"
+               + "server is the slow one. Press Convert again.");
+            outMeta.textContent = why ? "did not compile" : "no answer";
+            return;
+          }
+          outBody.className = "pg-out-body";
+          outBody.textContent = code.replace(/\r\n/g, "\n").replace(/\s+$/, "");
+          outMeta.textContent =
+            "converted to " + b + " · "
+            + code.replace(/\s+$/, "").split("\n").length + " lines · not run";
+        })
+        .catch(function () {
+          online = false;
+          setPill("off", "no server", "No server at " + api() + " — `pyro` still runs in the browser");
+          offlineHelp();
+        })
+        .then(function () { runBtn.disabled = false; });
+    }
+
     function doRun() {
       if (backend.value === "pyro" && window.PyroEngine) { runInBrowser(); return; }
+      if (!isRunnable()) { doConvert(); return; }
       if (!online) { offlineHelp(); ping(); return; }
       runBtn.disabled = true;
       outMeta.textContent = "running…";
@@ -476,6 +598,17 @@
       if (v) { setApi(v.replace(/\/+$/, "")); ping(); }
     });
 
+    // Changing language changes what Run means, so the previous pane is
+    // cleared: leaving program output under a "go source" heading, or Go
+    // source under "Output", is the kind of stale pane a reader believes.
+    backend.addEventListener("change", function () {
+      outBody.textContent = "";
+      outBody.className = "pg-out-body";
+      outMeta.textContent = "";
+      syncMode();
+    });
+
+    syncMode();
     paint();
     ping();
   }

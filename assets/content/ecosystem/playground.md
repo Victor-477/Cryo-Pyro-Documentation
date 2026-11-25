@@ -50,11 +50,24 @@ Cryo precisely so this was possible without one.
 > terminal that aborts; in the browser it printed nothing at all. Fixed, and
 > the reason this page can show a counted loop at all.
 
-## The other backends
+## The other languages: shown, not run
 
-The dropdown also offers `node`, `go`, `c`, `csharp` and `cpp`. Those are whole
-toolchains — a Go compiler, the .NET SDK, gcc — and cannot be shipped to a
-browser, so they need the local server:
+The dropdown also offers `node`, `go`, `c`, `csharp` and `cpp`. Picking one
+does **not** run your program — it shows you **the conversion**: the source
+your Cryo compiles to in that language. The button changes from **Run** to
+**Convert**, and a notice above the editor says so before you press anything.
+
+The reason is the same one that made `pyro` work here. Those five are whole
+toolchains — Node.js, a Go compiler, gcc, the .NET SDK, g++ — and a web page
+cannot install one into your browser, nor reach the files this site is served
+from. The Pyro VM could be shipped to the browser because it is one small C
+program; a Go compiler cannot.
+
+> **Converting needs the toolchain too.** The `go` and `csharp` code
+> generators live in Burnout, which is Python, and Python is not in your
+> browser either. So on this site the Convert button explains that and hands
+> you the one command instead. With the local server running, it converts for
+> you.
 
 ```bash
 cd cryo-playground
@@ -67,11 +80,14 @@ pill reports it; **double-click the pill** to point somewhere else and the
 choice is remembered. `pyro` ignores all of this and keeps running in the
 browser either way.
 
-The playground application in `cryo-playground/` also includes a comprehensive API test suite:
+Without any server at all, Copy takes the program and one command gives you the
+same conversion:
+
 ```bash
-node cryo-playground/test_playground.js
+python Burnout/cryoc.py main.cryo --backend go -o out.go
 ```
-Validating `/api/health`, `/api/examples`, `/api/compile`, `/api/run` across both the Pyro VM and the Go backend.
+
+Add `--run` to that and it compiles and runs it as well.
 
 > The server executes whatever it is sent. It is a development tool for your
 > own machine, not something to expose to a network you do not control.
